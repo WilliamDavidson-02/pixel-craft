@@ -31,8 +31,9 @@ const PLAYER_WATER_Y_POS_BOTTOM = TILE_HEIGHT_HALF
 let playerIsInWater = false
 const PLAYER_VOLUM = 0.4
 
-const allowedKeys = ['w', 'a', 's', 'd'] as const
+const allowedKeys = ['w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'] as const
 type AllowedKeys = (typeof allowedKeys)[number]
+
 const playerMovementKeys = new Set<string>([])
 
 let animationTimer = 0
@@ -42,12 +43,16 @@ const animationSpeed = 0.1
 
 let playerChunkKey = ''
 
-const getVerticleDirection = (verticle: string) => {
-	return verticle === 'w' ? 'up' : 'down'
+const getVerticleDirection = (key: string) => {
+	if (key === 'w' || key === 'ArrowUp') return 'up'
+	if (key === 's' || key === 'ArrowDown') return 'down'
+	return ''
 }
 
-const getHorizontalDirection = (horizontal: string) => {
-	return horizontal === 'a' ? 'left' : 'right'
+const getHorizontalDirection = (key: string) => {
+	if (key === 'a' || key === 'ArrowLeft') return 'left'
+	if (key === 'd' || key === 'ArrowRight') return 'right'
+	return ''
 }
 
 const getPlayerAnimationKey = (keys: Set<string>) => {
@@ -59,8 +64,8 @@ const getPlayerAnimationKey = (keys: Set<string>) => {
 	// We only want to use the first and second key that is active if a users has three keys active we ignore it
 	if (keys.size > 2 || keys.size === 0) return animationKey
 
-	const verticalKeys = ['w', 's']
-	const horizontalKeys = ['a', 'd']
+	const verticalKeys = ['w', 's', 'ArrowUp', 'ArrowDown']
+	const horizontalKeys = ['a', 'd', 'ArrowLeft', 'ArrowRight']
 
 	let vertical = ''
 	let horizontal = ''
@@ -133,9 +138,17 @@ const isAllowedKey = (key: string): key is AllowedKeys => {
 
 export const registerPlayerMovement = (key: string) => {
 	if (isAllowedKey(key) && !playerMovementKeys.has(key)) {
-		const opposites = { w: 's', s: 'w', a: 'd', d: 'a' }
+		const opposites: Record<string, string> = {
+			w: 's',
+			s: 'w',
+			a: 'd',
+			d: 'a',
+			ArrowUp: 'ArrowDown',
+			ArrowDown: 'ArrowUp',
+			ArrowLeft: 'ArrowRight',
+			ArrowRight: 'ArrowLeft'
+		}
 
-		// If we have to directions on the same axis it will mess with the animation key
 		if (playerMovementKeys.has(opposites[key])) {
 			removePlayerMovement(opposites[key])
 		}
@@ -291,27 +304,27 @@ const handlePlayerBounds = (player: Sprite) => {
 				const collidedSides = getIsoCollisionSides(tile, player)
 
 				if (collidedSides['top-left']) {
-					allowedDirection = ['w', 'a']
+					allowedDirection = ['w', 'a', 'ArrowUp', 'ArrowLeft']
 					break
 				}
 				if (collidedSides['top-right']) {
-					allowedDirection = ['w', 'd']
+					allowedDirection = ['w', 'd', 'ArrowUp', 'ArrowRight']
 					break
 				}
 				if (collidedSides['bottom-left']) {
-					allowedDirection = ['s', 'a']
+					allowedDirection = ['s', 'a', 'ArrowDown', 'ArrowLeft']
 					break
 				}
 				if (collidedSides['bottom-right']) {
-					allowedDirection = ['s', 'd']
+					allowedDirection = ['s', 'd', 'ArrowDown', 'ArrowRight']
 					break
 				}
 				if (collidedSides['top']) {
-					allowedDirection = ['w', 'a', 'd']
+					allowedDirection = ['w', 'a', 'd', 'ArrowUp', 'ArrowLeft', 'ArrowRight']
 					break
 				}
 				if (collidedSides['bottom']) {
-					allowedDirection = ['s', 'a', 'd']
+					allowedDirection = ['s', 'a', 'd', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
 					break
 				}
 			}
@@ -393,22 +406,34 @@ export const movePlayerPosition = (player: Sprite, world: Container, ticker: Tic
 	const allowedDirection = handlePlayerBounds(player)
 	const distance = ticker.deltaTime * PLAYER_SPEED
 
-	if (playerMovementKeys.has('w') && allowedDirection.includes('w')) {
+	if (
+		(playerMovementKeys.has('w') || playerMovementKeys.has('ArrowUp')) &&
+		allowedDirection.includes('w')
+	) {
 		world.y += distance
 		player.y -= distance
 	}
 
-	if (playerMovementKeys.has('a') && allowedDirection.includes('a')) {
+	if (
+		(playerMovementKeys.has('a') || playerMovementKeys.has('ArrowLeft')) &&
+		allowedDirection.includes('a')
+	) {
 		world.x += distance * 2
 		player.x -= distance * 2
 	}
 
-	if (playerMovementKeys.has('s') && allowedDirection.includes('s')) {
+	if (
+		(playerMovementKeys.has('s') || playerMovementKeys.has('ArrowDown')) &&
+		allowedDirection.includes('s')
+	) {
 		world.y -= distance
 		player.y += distance
 	}
 
-	if (playerMovementKeys.has('d') && allowedDirection.includes('d')) {
+	if (
+		(playerMovementKeys.has('d') || playerMovementKeys.has('ArrowRight')) &&
+		allowedDirection.includes('d')
+	) {
 		world.x -= distance * 2
 		player.x += distance * 2
 	}
