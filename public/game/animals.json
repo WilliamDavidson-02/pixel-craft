@@ -1,0 +1,127 @@
+{
+	"frames": {
+		"walk-up-0.png": {
+			"frame": { "x": 0, "y": 512, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-up-1.png": {
+			"frame": { "x": 64, "y": 512, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-up-2.png": {
+			"frame": { "x": 128, "y": 512, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-left-0.png": {
+			"frame": { "x": 0, "y": 576, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-left-1.png": {
+			"frame": { "x": 64, "y": 576, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-left-2.png": {
+			"frame": { "x": 128, "y": 576, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-down-0.png": {
+			"frame": { "x": 0, "y": 640, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-down-1.png": {
+			"frame": { "x": 64, "y": 640, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-down-2.png": {
+			"frame": { "x": 128, "y": 640, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-right-0.png": {
+			"frame": { "x": 0, "y": 704, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-right-1.png": {
+			"frame": { "x": 64, "y": 704, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		},
+		"walk-right-2.png": {
+			"frame": { "x": 128, "y": 704, "w": 64, "h": 64 },
+			"rotated": false,
+			"trimmed": false,
+			"spriteSourceSize": { "x": 0, "y": 0, "w": 64, "h": 64 },
+			"sourceSize": { "w": 64, "h": 64 },
+			"pivot": { "x": 0.5, "y": 1 }
+		}
+	},
+	"animations": {
+		"down-center": ["walk-down-0.png", "walk-down-1.png", "walk-down-2.png"],
+		"down-left": ["walk-down-0.png", "walk-down-1.png", "walk-down-2.png"],
+		"down-right": ["walk-down-0.png", "walk-down-1.png", "walk-down-2.png"],
+		"up-center": ["walk-up-0.png", "walk-up-1.png", "walk-up-2.png"],
+		"up-left": ["walk-up-0.png", "walk-up-1.png", "walk-up-2.png"],
+		"up-right": ["walk-up-0.png", "walk-up-1.png", "walk-up-2.png"],
+		"left-left": ["walk-left-0.png", "walk-left-1.png", "walk-left-2.png"],
+		"right-right": ["walk-right-0.png", "walk-right-1.png", "walk-right-2.png"],
+
+		"water-down-center": ["walk-down-0.png", "walk-down-1.png", "walk-down-2.png"],
+		"water-down-left": ["walk-down-0.png", "walk-down-1.png", "walk-down-2.png"],
+		"water-down-right": ["walk-down-0.png", "walk-down-1.png", "walk-down-2.png"],
+		"water-up-center": ["walk-up-0.png", "walk-up-1.png", "walk-up-2.png"],
+		"water-up-left": ["walk-up-0.png", "walk-up-1.png", "walk-up-2.png"],
+		"water-up-right": ["walk-up-0.png", "walk-up-1.png", "walk-up-2.png"],
+		"water-left-left": ["walk-left-0.png", "walk-left-1.png", "walk-left-2.png"],
+		"water-right-right": ["walk-right-0.png", "walk-right-1.png", "walk-right-2.png"]
+	},
+	"meta": {
+		"app": "LPC Universal Sprite Generator",
+		"version": "1.0",
+		"image": "animals.png",
+		"format": "RGBA8888",
+		"size": { "w": 832, "h": 1344 },
+		"scale": 1
+	}
+}
