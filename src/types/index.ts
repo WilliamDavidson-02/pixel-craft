@@ -14,4 +14,6 @@ export type Animal = {
 	speed: number
 	chunkKey: string
 	isInWater: boolean
+	health: number
+	isDead: boolean
 }
