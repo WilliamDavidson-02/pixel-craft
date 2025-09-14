@@ -18,7 +18,7 @@ import {
 	removePlayerMovement,
 	setPlayerAnimation
 } from './core/player'
-import { spawnAnimals, updateAllAnimals } from './core/animals'
+import { spawnAnimals, updateAllAnimals, attackNearbyWolves } from './core/animals'
 import { handleWindowResize } from './lib/utils/window'
 
 let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight)
@@ -53,11 +53,22 @@ const init = async () => {
 
 	const player = createPlayer(world)
 	putPlayerInChunk(player)
-	
+
 	// Spawn 200 wolves across a large area
 	spawnAnimals(world, 200)
-	
-	window.addEventListener('keydown', (ev) => registerPlayerMovement(ev.key))
+
+	window.addEventListener('keydown', (ev) => {
+		registerPlayerMovement(ev.key)
+
+		// Handle attack with Space key
+		if (ev.key === ' ') {
+			ev.preventDefault() // Prevent page scroll
+			// Get player position in world coordinates
+			const playerX = player.x
+			const playerY = player.y
+			attackNearbyWolves(playerX, playerY)
+		}
+	})
 	window.addEventListener('keyup', (ev) => removePlayerMovement(ev.key))
 
 	app.ticker.add((ticker) => {
