@@ -1,4 +1,4 @@
-import { Container, ContainerChild, Sprite, Ticker } from 'pixi.js'
+import { Container, type ContainerChild, Sprite, Ticker } from 'pixi.js'
 import { ASSETS, AUDIO } from './assets'
 import {
 	getChunk,
@@ -13,7 +13,7 @@ import {
 	TILE_HEIGHT_HALF,
 	TILE_WIDTH_HALF
 } from './tiles'
-import { Chunk } from '../types/tiles'
+import { type Chunk } from '../types/tiles'
 import { getVegetationFromGround, hasVegetationCollisions } from './vegetation'
 import { generatePerlinNoise } from '../lib/utils/perlinNoise'
 import { isTileWater } from './water'

@@ -1,5 +1,5 @@
-import { Container, ContainerChild, Sprite } from 'pixi.js'
-import { Chunks, TileCallback } from '../types/tiles'
+import { Container, type ContainerChild, Sprite } from 'pixi.js'
+import { type Chunks, type TileCallback } from '../types/tiles'
 import { getCellFromKey } from '../lib/utils/chunks'
 import { getPerlinNoise } from '../lib/utils/perlinNoise'
 import { createGroundSprite } from './ground'

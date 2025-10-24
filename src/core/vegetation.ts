@@ -5,7 +5,7 @@ import { isoPosToWorldPos, TILE_HEIGHT, TILE_HEIGHT_HALF, TILE_WIDTH_HALF } from
 import { ASSETS } from './assets'
 import { SEED } from '../lib/utils/perlinNoise'
 import { isTileWater } from './water'
-import { Chunk } from '../types/tiles'
+import { type Chunk } from '../types/tiles'
 
 type VegetationSpriteData = {
 	xPosTile: number
