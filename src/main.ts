@@ -1,82 +1,83 @@
-import { Application, Container, Culler, Rectangle } from 'pixi.js'
+import { Application, Container, Culler, Rectangle } from "pixi.js";
+
+import { loadAllinitialAssets } from "./core/assets";
 import {
-	chunkCreationList,
-	createChunk,
-	setInitalTiles,
-	setNewChunksToRender,
-	setRenderDistance,
-	updateVisibleChunks
-} from './core/tiles'
-import { loadAllinitialAssets } from './core/assets'
+  createPlayer,
+  isPlayerMoving,
+  isPlayerStopping,
+  movePlayerPosition,
+  putPlayerInChunk,
+  registerPlayerMovement,
+  removePlayerMovement,
+  setPlayerAnimation,
+} from "./core/player";
 import {
-	createPlayer,
-	isPlayerMoving,
-	isPlayerStopping,
-	movePlayerPosition,
-	putPlayerInChunk,
-	registerPlayerMovement,
-	removePlayerMovement,
-	setPlayerAnimation
-} from './core/player'
-import { handleWindowResize } from './lib/utils/window'
+  chunkCreationList,
+  createChunk,
+  setInitalTiles,
+  setNewChunksToRender,
+  setRenderDistance,
+  updateVisibleChunks,
+} from "./core/tiles";
+import { handleWindowResize } from "./lib/utils/window";
 
-let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight)
+let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
 
-const init = async () => {
-	const app = new Application()
-	await app.init({
-		resizeTo: window,
-		antialias: false,
-		background: '#4a80ff'
-	})
-	document.body.appendChild(app.canvas)
-	// @ts-ignore
-	globalThis.__PIXI_APP__ = app
+const init = async (): Promise<void> => {
+  const app = new Application();
+  await app.init({
+    resizeTo: window,
+    antialias: false,
+    background: "#4a80ff",
+  });
+  document.body.appendChild(app.canvas);
+  // @ts-expect-error - This is for development
+  globalThis.__PIXI_APP__ = app;
 
-	setRenderDistance()
-	await loadAllinitialAssets()
+  setRenderDistance();
+  await loadAllinitialAssets();
 
-	const world = new Container({
-		isRenderGroup: true,
-		eventMode: 'static',
-		label: 'world'
-	})
+  const world = new Container({
+    isRenderGroup: true,
+    eventMode: "static",
+    label: "world",
+  });
 
-	app.stage.addChild(world)
+  app.stage.addChild(world);
 
-	const surface = new Container({ label: 'surface' })
+  const surface = new Container({ label: "surface" });
 
-	const ground = new Container({ label: 'ground' })
-	setInitalTiles(world, ground, surface)
-	world.addChild(ground, surface)
+  const ground = new Container({ label: "ground" });
+  setInitalTiles(world, ground, surface);
+  world.addChild(ground, surface);
 
-	const player = createPlayer(world)
-	putPlayerInChunk(player)
-	window.addEventListener('keydown', (ev) => registerPlayerMovement(ev.key))
-	window.addEventListener('keyup', (ev) => removePlayerMovement(ev.key))
+  const player = createPlayer(world);
+  putPlayerInChunk(player);
+  window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
+  window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
 
-	app.ticker.add((ticker) => {
-		if (isPlayerMoving()) {
-			movePlayerPosition(player, world, ticker)
-			setNewChunksToRender(world)
+  app.ticker.add((ticker) => {
+    if (isPlayerMoving()) {
+      movePlayerPosition(player, world, ticker);
+      setNewChunksToRender(world);
 
-			if (chunkCreationList.length > 0) {
-				createChunk(chunkCreationList[0])
-			}
+      if (chunkCreationList.length > 0) {
+        createChunk(chunkCreationList[0]);
+      }
 
-			updateVisibleChunks(world, ground, surface)
-		} else if (isPlayerStopping()) {
-			setPlayerAnimation(player, null, 0)
-		}
+      updateVisibleChunks(world, ground, surface);
+    } else if (isPlayerStopping()) {
+      setPlayerAnimation(player, null, 0);
+    }
 
-		Culler.shared.cull(world, view)
-	})
+    Culler.shared.cull(world, view);
+  });
 
-	window.addEventListener('resize', () => {
-		handleWindowResize(world, ground, surface)
+  window.addEventListener("resize", () => {
+    handleWindowResize(world, ground, surface);
 
-		view = new Rectangle(0, 0, window.innerWidth, window.innerHeight)
-	})
-}
+    view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
+  });
+};
 
-window.addEventListener('DOMContentLoaded', init)
+window.addEventListener("DOMContentLoaded", init);

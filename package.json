@@ -6,12 +6,25 @@
 	"scripts": {
 		"dev": "vite --host",
 		"build": "tsc && vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"lint": "eslint src"
 	},
 	"devDependencies": {
+		"@eslint/js": "^9.38.0",
 		"@types/noisejs": "^2.1.0",
+		"eslint": "^9.38.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-import": "^2.32.0",
+		"eslint-plugin-prettier": "^5.5.4",
+		"eslint-plugin-simple-import-sort": "^12.1.1",
+		"eslint-plugin-sonarjs": "^3.0.5",
+		"globals": "^16.4.0",
+		"jiti": "^2.6.1",
+		"prettier": "^3.6.2",
 		"typescript": "~5.9.3",
-		"vite": "npm:rolldown-vite@7.1.14"
+		"typescript-eslint": "^8.46.2",
+		"vite": "npm:rolldown-vite@7.1.14",
+		"vite-plugin-eslint": "^1.8.1"
 	},
 	"overrides": {
 		"vite": "npm:rolldown-vite@7.1.14"

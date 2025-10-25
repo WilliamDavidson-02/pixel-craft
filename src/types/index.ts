@@ -1,5 +1,5 @@
 export type PerlinNoise = {
-	map: number[][]
-	width: number
-	height: number
-}
+  map: number[][];
+  width: number;
+  height: number;
+};
