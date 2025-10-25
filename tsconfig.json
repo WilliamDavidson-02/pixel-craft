@@ -28,6 +28,7 @@
   },
   "include": [
     "src",
-    "eslint.config.ts"
+    "eslint.config.ts",
+    "commitlint.config.ts"
   ]
 }
