@@ -1,3 +1,4 @@
+import { initDevtools } from "@pixi/devtools";
 import { Container, Culler, Rectangle } from "pixi.js";
 
 import { loadAllinitialAssets } from "@/core/assets";
@@ -33,8 +34,7 @@ const init = async (): Promise<void> => {
     background: "#4a80ff",
   });
   document.body.appendChild(state.app.canvas);
-  // @ts-expect-error - This is for development
-  globalThis.__PIXI_APP__ = state.app;
+  initDevtools({ app: state.app });
 
   setRenderDistance();
   await loadAllinitialAssets();

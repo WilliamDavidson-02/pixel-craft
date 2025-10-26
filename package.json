@@ -14,6 +14,7 @@
 		"@commitlint/cli": "^20.1.0",
 		"@commitlint/config-conventional": "^20.0.0",
 		"@eslint/js": "^9.38.0",
+		"@pixi/devtools": "^2.0.1",
 		"@types/noisejs": "^2.1.0",
 		"eslint": "^9.38.0",
 		"eslint-config-prettier": "^10.1.8",
@@ -36,6 +37,6 @@
 	},
 	"dependencies": {
 		"noisejs": "^2.1.0",
-		"pixi.js": "^8.6.4"
+		"pixi.js": "^8.14.0"
 	}
 }
