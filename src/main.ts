@@ -1,6 +1,6 @@
 import { Application, Container, Culler, Rectangle } from "pixi.js";
 
-import { loadAllinitialAssets } from "./core/assets";
+import { loadAllinitialAssets } from "@/core/assets";
 import {
   createPlayer,
   isPlayerMoving,
@@ -10,7 +10,7 @@ import {
   registerPlayerMovement,
   removePlayerMovement,
   setPlayerAnimation,
-} from "./core/player";
+} from "@/core/entities/player";
 import {
   chunkCreationList,
   createChunk,
@@ -18,8 +18,8 @@ import {
   setNewChunksToRender,
   setRenderDistance,
   updateVisibleChunks,
-} from "./core/tiles";
-import { handleWindowResize } from "./lib/utils/window";
+} from "@/core/tiles";
+import { handleWindowResize } from "@/lib/utils/window";
 
 let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
 

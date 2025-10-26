@@ -1,8 +1,8 @@
 import { type Container, type ContainerChild, Sprite, type Ticker } from "pixi.js";
 
-import { generatePerlinNoise } from "../lib/utils/perlinNoise";
-import { type Chunk } from "../types/tiles";
-import { ASSETS } from "./assets";
+import { ASSETS } from "@/core/assets";
+import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
+import { isTileWater } from "@/core/terrain/water";
 import {
   getChunk,
   getChunkByGlobalPosition,
@@ -15,9 +15,10 @@ import {
   TILE_HEIGHT,
   TILE_HEIGHT_HALF,
   TILE_WIDTH_HALF,
-} from "./tiles";
-import { getVegetationFromGround, hasVegetationCollisions } from "./vegetation";
-import { isTileWater } from "./water";
+} from "@/core/tiles";
+import { generatePerlinNoise } from "@/lib/utils/perlinNoise";
+
+import { type Chunk } from "../../types/tiles";
 
 export type Coordinates = { x: number; y: number };
 

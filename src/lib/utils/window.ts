@@ -1,8 +1,8 @@
 import type { Container } from "pixi.js";
 
-import { setRenderDistance, updateVisibleChunks } from "../../core/tiles";
+import { setRenderDistance, updateVisibleChunks } from "@/core/tiles";
 
-let isResizing: number | null = null;
+let isResizing: NodeJS.Timeout | null = null;
 
 let prevWindowWidth = window.innerWidth;
 let prevWindowHeight = window.innerHeight;

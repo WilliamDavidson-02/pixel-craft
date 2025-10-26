@@ -1,7 +1,7 @@
 // @ts-expect-error - This is the way to import noise
 import { Noise } from "noisejs";
 
-import { CHUNK_SIZE, isoPosToWorldPos } from "../../core/tiles";
+import { CHUNK_SIZE, isoPosToWorldPos } from "@/core/tiles";
 
 export const SEED = 47208;
 

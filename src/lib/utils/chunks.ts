@@ -1,4 +1,4 @@
-import { CHUNK_SIZE } from "../../core/tiles";
+import { CHUNK_SIZE } from "@/core/tiles";
 
 export type ChunkKey = `${number}_${number}`;
 

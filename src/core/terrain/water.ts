@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { ASSETS } from "./assets";
+import { ASSETS } from "@/core/assets";
 
 // We check the suroding perlin values to get the correct water tile
 // 1 = ground, 0 = ignore and -1 = water

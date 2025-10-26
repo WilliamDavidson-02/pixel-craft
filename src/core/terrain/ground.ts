@@ -1,9 +1,9 @@
 import { Sprite } from "pixi.js";
 
-import { getPerlinAroundCell } from "../lib/utils/perlinNoise";
-import { ASSETS } from "./assets";
-import { TILE_HEIGHT, TILE_WIDTH, TILE_WIDTH_HALF } from "./tiles";
-import { getWaterTextureFromPerlin, isTileWater } from "./water";
+import { ASSETS } from "@/core/assets";
+import { getWaterTextureFromPerlin, isTileWater } from "@/core/terrain/water";
+import { TILE_HEIGHT, TILE_WIDTH, TILE_WIDTH_HALF } from "@/core/tiles";
+import { getPerlinAroundCell } from "@/lib/utils/perlinNoise";
 
 type GroundSpriteData = {
   xPosTile: number;

@@ -1,11 +1,12 @@
 import { Container, type ContainerChild, type Sprite } from "pixi.js";
 
-import { getCellFromKey } from "../lib/utils/chunks";
-import { getPerlinNoise } from "../lib/utils/perlinNoise";
+import type { Coordinates } from "@/core/entities/player";
+import { createGroundSprite } from "@/core/terrain/ground";
+import { createVegetationSprite } from "@/core/terrain/vegetation";
+import { getCellFromKey } from "@/lib/utils/chunks";
+import { getPerlinNoise } from "@/lib/utils/perlinNoise";
+
 import { type Chunk, type Chunks, type ColidedSides, type TileCallback } from "../types/tiles";
-import { createGroundSprite } from "./ground";
-import type { Coordinates } from "./player";
-import { createVegetationSprite } from "./vegetation";
 
 export const TILE_WIDTH = 128;
 export const TILE_WIDTH_HALF = TILE_WIDTH / 2;
