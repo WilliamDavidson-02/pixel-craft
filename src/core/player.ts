@@ -2,7 +2,7 @@ import { type Container, type ContainerChild, Sprite, type Ticker } from "pixi.j
 
 import { generatePerlinNoise } from "../lib/utils/perlinNoise";
 import { type Chunk } from "../types/tiles";
-import { ASSETS, AUDIO } from "./assets";
+import { ASSETS } from "./assets";
 import {
   getChunk,
   getChunkByGlobalPosition,
@@ -25,14 +25,13 @@ export const PLAYER_WIDTH = 32;
 export const PLAYER_HEIGHT = 64;
 const PLAYER_FRAME_LENGTH = 3;
 
-const DEFAULT_SPEED = 1;
+const DEFAULT_SPEED = 2;
 export let PLAYER_SPEED = DEFAULT_SPEED;
-const WATER_SPEED_REDUCTION = 0.6;
+const WATER_SPEED_REDUCTION = 1.6;
 // Diffrent water position if comming in or out from top or bottom of lakes since top you see the side of the ground but not on the bottom of lakes there for we move the player diffrently
 const PLAYER_WATER_Y_POS_TOP = TILE_HEIGHT;
 const PLAYER_WATER_Y_POS_BOTTOM = TILE_HEIGHT_HALF;
 let playerIsInWater = false;
-const PLAYER_VOLUM = 0.4;
 
 const allowedKeys = ["w", "a", "s", "d"] as const;
 type AllowedKeys = (typeof allowedKeys)[number];
@@ -174,22 +173,6 @@ const handlePlayerAnimation = (player: Sprite): void => {
     animationKey = getPlayerAnimationKey(playerMovementKeys);
     if (ASSETS.PLAYER) {
       player.texture = ASSETS.PLAYER.animations[animationKey][currentFrame];
-    }
-
-    const isStepFrame = currentFrame === 1 || currentFrame === 3;
-
-    if (isStepFrame && !playerIsInWater && AUDIO.WALK) {
-      const sound = AUDIO.WALK[Math.floor(Math.random() * AUDIO.WALK.length)];
-      sound.currentTime = 0;
-      sound.volume = PLAYER_VOLUM;
-      sound.play();
-    } else if (currentFrame === 1 && playerIsInWater && AUDIO.SWIM) {
-      const sound = AUDIO.SWIM[Math.floor(Math.random() * AUDIO.SWIM.length)];
-      if (sound.paused) {
-        sound.currentTime = 0;
-        sound.volume = PLAYER_VOLUM;
-        sound.play();
-      }
     }
   }
 };
