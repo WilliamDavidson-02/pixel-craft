@@ -20,6 +20,9 @@ npm install
 npm run dev
 ```
 
+## Devtools
+Pixi.js has a very useful DevTools extension for debugging rendered containers and assets. This is already set up for this project, but make sure to install the [extension](https://chromewebstore.google.com/detail/pixijs-devtools/dlkffcaaoccbofklocbjcmppahjjboce).
+
 ## Map generation
 
 There is a chunking system inspired by Minecraft where we have a render distance from where the player is and render all the visible chunks.
