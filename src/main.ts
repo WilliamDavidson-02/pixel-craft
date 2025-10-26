@@ -1,4 +1,4 @@
-import { Application, Container, Culler, Rectangle } from "pixi.js";
+import { Container, Culler, Rectangle } from "pixi.js";
 
 import { loadAllinitialAssets } from "@/core/assets";
 import {
@@ -11,6 +11,7 @@ import {
   removePlayerMovement,
   setPlayerAnimation,
 } from "@/core/entities/player";
+import { state } from "@/core/state";
 import {
   chunkCreationList,
   createChunk,
@@ -21,18 +22,19 @@ import {
 } from "@/core/tiles";
 import { handleWindowResize } from "@/lib/utils/window";
 
+import { renderDuebugItems, setDebugItem } from "./lib/debug";
+
 let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
 
 const init = async (): Promise<void> => {
-  const app = new Application();
-  await app.init({
+  await state.app.init({
     resizeTo: window,
     antialias: false,
     background: "#4a80ff",
   });
-  document.body.appendChild(app.canvas);
+  document.body.appendChild(state.app.canvas);
   // @ts-expect-error - This is for development
-  globalThis.__PIXI_APP__ = app;
+  globalThis.__PIXI_APP__ = state.app;
 
   setRenderDistance();
   await loadAllinitialAssets();
@@ -43,7 +45,7 @@ const init = async (): Promise<void> => {
     label: "world",
   });
 
-  app.stage.addChild(world);
+  state.app.stage.addChild(world);
 
   const surface = new Container({ label: "surface" });
 
@@ -56,7 +58,11 @@ const init = async (): Promise<void> => {
   window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
   window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
 
-  app.ticker.add((ticker) => {
+  setDebugItem("window", { width: window.innerWidth, height: window.innerHeight });
+  setDebugItem("playerPosition", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
+
+  state.app.ticker.add((ticker) => {
+    setDebugItem("fps", Math.floor(ticker.FPS));
     if (isPlayerMoving()) {
       movePlayerPosition(player, world, ticker);
       setNewChunksToRender(world);
@@ -69,6 +75,8 @@ const init = async (): Promise<void> => {
     } else if (isPlayerStopping()) {
       setPlayerAnimation(player, null, 0);
     }
+
+    renderDuebugItems();
 
     Culler.shared.cull(world, view);
   });

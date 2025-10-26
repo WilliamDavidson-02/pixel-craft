@@ -2,6 +2,8 @@ import type { Container } from "pixi.js";
 
 import { setRenderDistance, updateVisibleChunks } from "@/core/tiles";
 
+import { setDebugItem } from "../debug";
+
 let isResizing: NodeJS.Timeout | null = null;
 
 let prevWindowWidth = window.innerWidth;
@@ -22,6 +24,7 @@ export const handleWindowResize = (
   prevWindowHeight = window.innerHeight;
 
   setRenderDistance();
+  setDebugItem("window", { width: window.innerWidth, height: window.innerHeight });
 
   if (isResizing) {
     clearTimeout(isResizing);

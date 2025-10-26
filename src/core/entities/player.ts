@@ -16,6 +16,7 @@ import {
   TILE_HEIGHT_HALF,
   TILE_WIDTH_HALF,
 } from "@/core/tiles";
+import { setDebugItem } from "@/lib/debug";
 import { generatePerlinNoise } from "@/lib/utils/perlinNoise";
 
 import { type Chunk } from "../../types/tiles";
@@ -420,4 +421,5 @@ export const movePlayerPosition = (player: Sprite, world: Container, ticker: Tic
 
   animationTimer += ticker.deltaTime / 60;
   handlePlayerAnimation(player);
+  setDebugItem("playerPosition", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
 };
