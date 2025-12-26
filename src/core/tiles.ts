@@ -2,7 +2,7 @@ import { Container, type ContainerChild, type Sprite } from "pixi.js";
 
 import type { Coordinates } from "@/core/entities/player";
 import { createGroundSprite } from "@/core/terrain/ground";
-import { createVegetationSprite } from "@/core/terrain/vegetation";
+import { setDebugItem } from "@/lib/debug";
 import { getCellFromKey } from "@/lib/utils/chunks";
 import { getPerlinNoise } from "@/lib/utils/perlinNoise";
 
@@ -68,11 +68,6 @@ export const createTiles = (keys: string[]): void => {
 
       if (groundSprite) {
         chunks.get(key)?.ground?.addChild(groundSprite);
-
-        const vegetationSprite = createVegetationSprite({ xPosTile, yPosTile, perlin, row, col });
-        if (vegetationSprite) {
-          chunks.get(key)?.surface?.addChild(vegetationSprite);
-        }
       }
     });
   }
@@ -115,6 +110,8 @@ export const getChunkByGlobalPosition = (x: number, y: number): { row: number; c
 
   const col = Math.floor(pos.x / CHUNK_SIZE);
   const row = Math.floor(pos.y / CHUNK_SIZE);
+
+  setDebugItem("chunk", { row, col });
 
   return { row, col };
 };

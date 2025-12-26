@@ -1,8 +1,6 @@
 import { type Container, type ContainerChild, Sprite, type Ticker } from "pixi.js";
 
-import { ASSETS } from "@/core/assets";
 import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
-import { isTileWater } from "@/core/terrain/water";
 import {
   getChunk,
   getChunkByGlobalPosition,
@@ -12,12 +10,10 @@ import {
   getVisibleChunkKeys,
   getVisibleChunks,
   isoPosToWorldPos,
-  TILE_HEIGHT,
   TILE_HEIGHT_HALF,
   TILE_WIDTH_HALF,
 } from "@/core/tiles";
 import { setDebugItem } from "@/lib/debug";
-import { generatePerlinNoise } from "@/lib/utils/perlinNoise";
 
 import { type Chunk } from "../../types/tiles";
 
@@ -25,24 +21,17 @@ export type Coordinates = { x: number; y: number };
 
 export const PLAYER_WIDTH = 32;
 export const PLAYER_HEIGHT = 64;
-const PLAYER_FRAME_LENGTH = 3;
 
-const DEFAULT_SPEED = 2;
-export let PLAYER_SPEED = DEFAULT_SPEED;
-const WATER_SPEED_REDUCTION = 1.6;
-// Diffrent water position if comming in or out from top or bottom of lakes since top you see the side of the ground but not on the bottom of lakes there for we move the player diffrently
-const PLAYER_WATER_Y_POS_TOP = TILE_HEIGHT;
-const PLAYER_WATER_Y_POS_BOTTOM = TILE_HEIGHT_HALF;
-let playerIsInWater = false;
+const DEFAULT_SPEED = 8;
+export const PLAYER_SPEED = DEFAULT_SPEED;
+const playerIsInWater = false;
 
 const allowedKeys = ["w", "a", "s", "d"] as const;
 type AllowedKeys = (typeof allowedKeys)[number];
 const playerMovementKeys = new Set<string>([]);
 
-let animationTimer = 0;
 let currentFrame = 0;
 let animationKey = "down-center";
-const animationSpeed = 0.1;
 
 let playerChunkKey = "";
 
@@ -116,7 +105,7 @@ const centerPlayerToCenterTile = (): Coordinates => {
   };
 };
 
-export const createPlayer = (world: Container): Sprite => {
+export const createPlayer = (): Sprite => {
   const { x, y } = centerPlayerToCenterTile();
 
   const player = new Sprite();
@@ -127,12 +116,7 @@ export const createPlayer = (world: Container): Sprite => {
   player.width = PLAYER_WIDTH;
   player.height = PLAYER_HEIGHT;
 
-  handlePlayerInWater(player, world);
   animationKey = getPlayerAnimationKey(playerMovementKeys);
-
-  if (ASSETS.PLAYER) {
-    player.texture = ASSETS.PLAYER.animations[animationKey][currentFrame];
-  }
 
   return player;
 };
@@ -168,28 +152,12 @@ export const isPlayerStopping = (): boolean => {
   return playerMovementKeys.size === 0 && currentFrame !== 0;
 };
 
-const handlePlayerAnimation = (player: Sprite): void => {
-  if (animationTimer >= animationSpeed && playerMovementKeys.size > 0) {
-    animationTimer = 0;
-    currentFrame = (currentFrame + 1) % PLAYER_FRAME_LENGTH;
-    animationKey = getPlayerAnimationKey(playerMovementKeys);
-    if (ASSETS.PLAYER) {
-      player.texture = ASSETS.PLAYER.animations[animationKey][currentFrame];
-    }
-  }
-};
-
 export const setPlayerAnimation = (
-  player: Sprite,
   key: string | null = animationKey,
   frame: number | null = currentFrame,
 ): void => {
-  animationTimer = 0;
   currentFrame = frame ?? currentFrame;
   animationKey = key ?? animationKey;
-  if (ASSETS.PLAYER) {
-    player.texture = ASSETS.PLAYER.animations[animationKey][currentFrame];
-  }
 };
 
 const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[] => {
@@ -333,59 +301,6 @@ export const movePlayerTo = (x: number, y: number, world: Container, player: Spr
   player.x -= xDiff;
 };
 
-/**
- * When in water top line hits before bottom meaning nort collision move player
- * When in water and bottom line hits before meaning soulth collision move player
- * When on ground and bottom line hits before meaing north entring water move player
- * When on ground and top line hits first meaning soulth entering water move player
- */
-
-const isPlayerInWater = (player: Sprite): Record<string, boolean> => {
-  const isWater: Record<string, boolean> = {};
-
-  const topLineYPos = playerIsInWater
-    ? player.y - PLAYER_WATER_Y_POS_TOP
-    : player.y - PLAYER_WATER_Y_POS_BOTTOM;
-
-  const positions = {
-    "top-left": isoPosToWorldPos(player.x, topLineYPos),
-    "top-right": isoPosToWorldPos(player.x + player.width, topLineYPos),
-    "bottom-left": isoPosToWorldPos(player.x, player.y),
-    "bottom-right": isoPosToWorldPos(player.x + player.width, player.y),
-  };
-
-  for (const [key, pos] of Object.entries(positions)) {
-    const noise = generatePerlinNoise(pos.x, pos.y);
-
-    const [line] = key.split("-");
-    isWater[line] = isTileWater(noise);
-  }
-
-  return isWater;
-};
-
-export const handlePlayerInWater = (player: Sprite, world: Container): void => {
-  const { top, bottom } = isPlayerInWater(player);
-
-  if (top && !playerIsInWater) {
-    playerIsInWater = true;
-    PLAYER_SPEED = WATER_SPEED_REDUCTION;
-    movePlayerTo(world.x, world.y - PLAYER_WATER_Y_POS_BOTTOM, world, player);
-  } else if (!bottom && playerIsInWater) {
-    playerIsInWater = false;
-    PLAYER_SPEED = DEFAULT_SPEED;
-    movePlayerTo(world.x, world.y + PLAYER_WATER_Y_POS_BOTTOM, world, player);
-  } else if (bottom && !playerIsInWater) {
-    playerIsInWater = true;
-    PLAYER_SPEED = WATER_SPEED_REDUCTION;
-    movePlayerTo(world.x, world.y + PLAYER_WATER_Y_POS_TOP, world, player);
-  } else if (!top && playerIsInWater) {
-    playerIsInWater = false;
-    PLAYER_SPEED = DEFAULT_SPEED;
-    movePlayerTo(world.x, world.y - PLAYER_WATER_Y_POS_TOP, world, player);
-  }
-};
-
 export const movePlayerPosition = (player: Sprite, world: Container, ticker: Ticker): void => {
   // We invert the momvent on the player to keep in in the center
 
@@ -414,12 +329,8 @@ export const movePlayerPosition = (player: Sprite, world: Container, ticker: Tic
     player.x += distance * 2;
   }
 
-  handlePlayerInWater(player, world);
-
   // To always be behind or infront of the right tree we have to adjust the zIndex depending on y axis
   player.zIndex = player.y;
 
-  animationTimer += ticker.deltaTime / 60;
-  handlePlayerAnimation(player);
-  setDebugItem("playerPosition", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
+  setDebugItem("position", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
 };

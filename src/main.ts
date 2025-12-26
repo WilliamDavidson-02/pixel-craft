@@ -5,12 +5,10 @@ import { loadAllinitialAssets } from "@/core/assets";
 import {
   createPlayer,
   isPlayerMoving,
-  isPlayerStopping,
   movePlayerPosition,
   putPlayerInChunk,
   registerPlayerMovement,
   removePlayerMovement,
-  setPlayerAnimation,
 } from "@/core/entities/player";
 import { state } from "@/core/state";
 import {
@@ -21,9 +19,8 @@ import {
   setRenderDistance,
   updateVisibleChunks,
 } from "@/core/tiles";
+import { renderDuebugItems, setDebugItem } from "@/lib/debug";
 import { handleWindowResize } from "@/lib/utils/window";
-
-import { renderDuebugItems, setDebugItem } from "./lib/debug";
 
 let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
 
@@ -53,16 +50,15 @@ const init = async (): Promise<void> => {
   setInitalTiles(world, ground, surface);
   world.addChild(ground, surface);
 
-  const player = createPlayer(world);
+  const player = createPlayer();
   putPlayerInChunk(player);
   window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
   window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
 
   setDebugItem("window", { width: window.innerWidth, height: window.innerHeight });
-  setDebugItem("playerPosition", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
+  setDebugItem("position", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
 
   state.app.ticker.add((ticker) => {
-    setDebugItem("fps", Math.floor(ticker.FPS));
     if (isPlayerMoving()) {
       movePlayerPosition(player, world, ticker);
       setNewChunksToRender(world);
@@ -72,10 +68,9 @@ const init = async (): Promise<void> => {
       }
 
       updateVisibleChunks(world, ground, surface);
-    } else if (isPlayerStopping()) {
-      setPlayerAnimation(player, null, 0);
     }
 
+    setDebugItem("fps", Math.floor(ticker.FPS));
     renderDuebugItems();
 
     Culler.shared.cull(world, view);
@@ -83,7 +78,6 @@ const init = async (): Promise<void> => {
 
   window.addEventListener("resize", () => {
     handleWindowResize(world, ground, surface);
-
     view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
   });
 };
