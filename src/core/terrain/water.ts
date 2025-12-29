@@ -1,6 +1,6 @@
 import type { Texture } from "pixi.js";
 
-import { ASSETS } from "@/core/assets";
+import { state } from "@/core/state";
 
 // We check the suroding perlin values to get the correct water tile
 // 1 = ground, 0 = ignore and -1 = water
@@ -257,12 +257,12 @@ export const matchesPattern = (perlin: number[][], pattern: number[][]): boolean
 };
 
 export const getWaterTextureFromPerlin = (perlin: number[][]): { water: Texture; key: string } => {
-  let water = ASSETS.BLOCKS?.animations["water"][0] as Texture;
+  let water = state.assets.blocks?.animations["water"][0] as Texture;
   let matchedKey = "";
 
   for (const [key, value] of Object.entries(waterPatterns)) {
-    if (matchesPattern(perlin, value) && ASSETS.BLOCKS) {
-      water = ASSETS.BLOCKS?.animations[key]?.[0] ?? water;
+    if (matchesPattern(perlin, value) && state.assets.blocks) {
+      water = state.assets.blocks?.animations[key]?.[0] ?? water;
       matchedKey = key;
       break;
     }

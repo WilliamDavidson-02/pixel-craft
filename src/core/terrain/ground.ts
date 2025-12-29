@@ -1,6 +1,6 @@
 import { Sprite } from "pixi.js";
 
-import { ASSETS } from "@/core/assets";
+import { state } from "@/core/state";
 import { getWaterTextureFromPerlin, isTileWater } from "@/core/terrain/water";
 import { TILE_HEIGHT, TILE_WIDTH, TILE_WIDTH_HALF } from "@/core/tiles";
 import { getPerlinAroundCell } from "@/lib/utils/perlinNoise";
@@ -27,8 +27,8 @@ export const createGroundSprite = (data: GroundSpriteData): Sprite | null => {
     label: `${x}_${y}`, // Adding the positino to the label so we can get tha same tile on the surface as well
   });
 
-  if (ASSETS.BLOCKS) {
-    sprite.texture = ASSETS.BLOCKS.animations["grass"][0];
+  if (state.assets.blocks) {
+    sprite.texture = state.assets.blocks.animations["grass"][0];
 
     if (isTileWater(perlin[row][col])) {
       const perlinArea = getPerlinAroundCell(xPosTile, yPosTile);

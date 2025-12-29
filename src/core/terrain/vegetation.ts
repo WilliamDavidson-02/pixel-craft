@@ -2,8 +2,8 @@
 import { Noise } from "noisejs";
 import { type ContainerChild, Sprite, type Texture } from "pixi.js";
 
-import { ASSETS } from "@/core/assets";
 import type { Coordinates } from "@/core/entities/player";
+import { state } from "@/core/state";
 import { isTileWater } from "@/core/terrain/water";
 import { isoPosToWorldPos, TILE_HEIGHT, TILE_HEIGHT_HALF, TILE_WIDTH_HALF } from "@/core/tiles";
 import { SEED } from "@/lib/utils/perlinNoise";
@@ -85,9 +85,9 @@ const getTextureFromPerlin = (perlin: number, x: number, y: number): Texture | n
     }
   }
 
-  if (!textureKey || !ASSETS.VEGETATION) return null;
+  if (!textureKey || !state.assets.vegetation) return null;
 
-  return ASSETS.VEGETATION.textures[textureKey];
+  return state.assets.vegetation.textures[textureKey];
 };
 
 export const convertVegetationPosToGround = (x: number, y: number): Coordinates => {

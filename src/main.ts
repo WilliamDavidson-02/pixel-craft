@@ -55,7 +55,6 @@ const init = async (): Promise<void> => {
   window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
   window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
 
-  setDebugItem("window", { width: window.innerWidth, height: window.innerHeight });
   setDebugItem("position", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
 
   state.app.ticker.add((ticker) => {
