@@ -19,6 +19,7 @@ import {
   setRenderDistance,
   updateVisibleChunks,
 } from "@/core/tiles";
+import { CONFIG } from "@/lib/config";
 import { renderDuebugItems, setDebugItem } from "@/lib/debug";
 import { handleWindowResize } from "@/lib/utils/window";
 
@@ -39,14 +40,14 @@ const init = async (): Promise<void> => {
   const world = new Container({
     isRenderGroup: true,
     eventMode: "static",
-    label: "world",
+    label: CONFIG.APP.WORLD,
   });
 
   state.app.stage.addChild(world);
 
   const surface = new Container({ label: "surface" });
 
-  const ground = new Container({ label: "ground" });
+  const ground = new Container({ label: CONFIG.APP.GROUND });
   setInitalTiles(world, ground, surface);
   world.addChild(ground, surface);
 
