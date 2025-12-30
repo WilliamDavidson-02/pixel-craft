@@ -2,20 +2,13 @@ import { Container, type ContainerChild, type Sprite } from "pixi.js";
 
 import type { Coordinates } from "@/core/entities/player";
 import { createGroundSprite } from "@/core/terrain/ground";
+import { TILES } from "@/lib/config/tiles";
 import { setDebugItem } from "@/lib/debug";
 import { getCellFromKey } from "@/lib/utils/chunks";
 import { getPerlinNoise } from "@/lib/utils/perlinNoise";
 
 import { type Chunk, type Chunks, type ColidedSides, type TileCallback } from "../types/tiles";
 
-export const TILE_WIDTH = 128;
-export const TILE_WIDTH_HALF = TILE_WIDTH / 2;
-export const TILE_HEIGHT = 64;
-export const TILE_HEIGHT_HALF = TILE_HEIGHT / 2;
-
-export const CHUNK_SIZE = 16;
-export const CHUNK_WIDTH = CHUNK_SIZE * TILE_WIDTH;
-export const CHUNK_HEIGHT = CHUNK_SIZE * TILE_HEIGHT;
 export let RENDER_DISTANCE = 4;
 const MAX_STORED_CHUNKS = RENDER_DISTANCE * RENDER_DISTANCE * 16;
 
@@ -26,7 +19,7 @@ let currentChunk = "";
 export const setRenderDistance = (): void => {
   const width = window.innerWidth;
   const chunkPadding = 2; // We want some extra chunks around the chunks that can fit in the screen so there is no void in the corners
-  RENDER_DISTANCE = Math.ceil(width / (CHUNK_SIZE * TILE_WIDTH_HALF)) + chunkPadding;
+  RENDER_DISTANCE = Math.ceil(width / (TILES.CHUNK_SIZE * TILES.TILE_WIDTH_HALF)) + chunkPadding;
 };
 
 export const loopTiles = <T>(width: number, height: number, callback: TileCallback<T>): T[] => {
@@ -46,15 +39,15 @@ export const createTiles = (keys: string[]): void => {
     const cellValue = getCellFromKey(key);
     const perlin = getPerlinNoise(cellValue.col, cellValue.row);
 
-    loopTiles(CHUNK_SIZE, CHUNK_SIZE, (row, col) => {
-      const currentRow = cellValue.row * CHUNK_SIZE + row;
-      const currentCol = cellValue.col * CHUNK_SIZE + col;
+    loopTiles(TILES.CHUNK_SIZE, TILES.CHUNK_SIZE, (row, col) => {
+      const currentRow = cellValue.row * TILES.CHUNK_SIZE + row;
+      const currentCol = cellValue.col * TILES.CHUNK_SIZE + col;
 
       const { xPosTile, yPosTile } = getIsometricTilePositions(
         currentRow,
         currentCol,
-        TILE_WIDTH_HALF,
-        TILE_HEIGHT_HALF,
+        TILES.TILE_WIDTH_HALF,
+        TILES.TILE_HEIGHT_HALF,
       );
 
       const groundSprite = createGroundSprite({ xPosTile, yPosTile, perlin, row, col });
@@ -99,8 +92,8 @@ export const getGlobalPositionFromNoneStagedTile = (
 };
 
 export const isoPosToWorldPos = (x: number, y: number): Coordinates => {
-  const xPos = Math.floor((x / TILE_WIDTH_HALF + y / TILE_HEIGHT_HALF) / 2);
-  const yPos = Math.floor((y / TILE_HEIGHT_HALF - x / TILE_WIDTH_HALF) / 2);
+  const xPos = Math.floor((x / TILES.TILE_WIDTH_HALF + y / TILES.TILE_HEIGHT_HALF) / 2);
+  const yPos = Math.floor((y / TILES.TILE_HEIGHT_HALF - x / TILES.TILE_WIDTH_HALF) / 2);
 
   return { x: xPos, y: yPos };
 };
@@ -108,8 +101,8 @@ export const isoPosToWorldPos = (x: number, y: number): Coordinates => {
 export const getChunkByGlobalPosition = (x: number, y: number): { row: number; col: number } => {
   const pos = isoPosToWorldPos(x, y);
 
-  const col = Math.floor(pos.x / CHUNK_SIZE);
-  const row = Math.floor(pos.y / CHUNK_SIZE);
+  const col = Math.floor(pos.x / TILES.CHUNK_SIZE);
+  const row = Math.floor(pos.y / TILES.CHUNK_SIZE);
 
   setDebugItem("chunk", { row, col });
 
@@ -222,8 +215,8 @@ export const updateVisibleChunks = (
 };
 
 export const getIsoCollisionSides = (tile: ContainerChild, player: Sprite): ColidedSides => {
-  const cx = tile.x + TILE_WIDTH_HALF;
-  const cy = tile.y + TILE_HEIGHT_HALF;
+  const cx = tile.x + TILES.TILE_WIDTH_HALF;
+  const cy = tile.y + TILES.TILE_HEIGHT_HALF;
 
   // Before this function is called we alredy know that we have collided with the tile
   // This function is to determin on what side we colided

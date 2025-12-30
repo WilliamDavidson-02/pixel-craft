@@ -1,9 +1,9 @@
 import { BitmapText, Container, Graphics } from "pixi.js";
 
 import { state } from "@/core/state";
-import { CONFIG } from "@/lib/config";
+import { LABELS } from "@/lib/config/labels";
 
-const debugContainer = new Container({ label: CONFIG.DEBUG_CONTAINER_LABEL });
+const debugContainer = new Container({ label: LABELS.DEBUG_CONTAINER_LABEL });
 
 export type BaseDebugValue = string | number;
 export type DebugValue = BaseDebugValue | Record<string, BaseDebugValue> | null;

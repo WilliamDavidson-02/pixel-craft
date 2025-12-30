@@ -1,10 +1,10 @@
-import { CHUNK_SIZE } from "@/core/tiles";
+import { TILES } from "@/lib/config/tiles";
 
 export type ChunkKey = `${number}_${number}`;
 
 export const getChunkKey = (row: number, col: number): ChunkKey => {
-  const chunkX = Math.floor(col / CHUNK_SIZE);
-  const chunkY = Math.floor(row / CHUNK_SIZE);
+  const chunkX = Math.floor(col / TILES.CHUNK_SIZE);
+  const chunkY = Math.floor(row / TILES.CHUNK_SIZE);
 
   return `${chunkX}_${chunkY}`;
 };

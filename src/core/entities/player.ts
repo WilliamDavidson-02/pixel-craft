@@ -10,10 +10,8 @@ import {
   getVisibleChunkKeys,
   getVisibleChunks,
   isoPosToWorldPos,
-  TILE_HEIGHT_HALF,
-  TILE_WIDTH_HALF,
 } from "@/core/tiles";
-import { setDebugItem } from "@/lib/debug";
+import { TILES } from "@/lib/config/tiles";
 
 import { type Chunk } from "../../types/tiles";
 
@@ -97,7 +95,12 @@ const centerPlayerToCenterTile = (): Coordinates => {
   const yPos = window.innerHeight / 2;
   const { x, y } = isoPosToWorldPos(xPos, yPos);
 
-  const { yPosTile, xPosTile } = getIsometricTilePositions(y, x, TILE_WIDTH_HALF, TILE_HEIGHT_HALF);
+  const { yPosTile, xPosTile } = getIsometricTilePositions(
+    y,
+    x,
+    TILES.TILE_WIDTH_HALF,
+    TILES.TILE_HEIGHT_HALF,
+  );
 
   return {
     x: xPosTile - PLAYER_WIDTH / 2,
@@ -166,12 +169,12 @@ const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[]
 
   // We only want to check if the bottom of the player is in a tile since there is where the feet are
   for (const tile of ground) {
-    const cx = tile.x + TILE_WIDTH_HALF;
-    const cy = tile.y + TILE_HEIGHT_HALF;
+    const cx = tile.x + TILES.TILE_WIDTH_HALF;
+    const cy = tile.y + TILES.TILE_HEIGHT_HALF;
 
     // The anchor is set to bottom left of the player there for we dont have to add ane width or height
-    const dx = Math.abs(player.x - cx) / TILE_WIDTH_HALF;
-    const dy = Math.abs(player.y - cy) / TILE_HEIGHT_HALF;
+    const dx = Math.abs(player.x - cx) / TILES.TILE_WIDTH_HALF;
+    const dy = Math.abs(player.y - cy) / TILES.TILE_HEIGHT_HALF;
 
     const isInIsometricTile = dx + dy <= 1;
 
@@ -200,7 +203,7 @@ const isPlayerBehindItem = (
   const isLeft = playerRight > itemLeft && playerRight < itemRight;
   const isTop = player.y > itemTop && player.y < item.y;
   const isBottom = playerTop < item.y && playerTop > itemTop;
-  const isAboveGroundTile = player.y < groundTile.y + TILE_HEIGHT_HALF;
+  const isAboveGroundTile = player.y < groundTile.y + TILES.TILE_HEIGHT_HALF;
 
   return isAboveGroundTile && (isRight || isLeft) && (isTop || isBottom);
 };
@@ -331,6 +334,4 @@ export const movePlayerPosition = (player: Sprite, world: Container, ticker: Tic
 
   // To always be behind or infront of the right tree we have to adjust the zIndex depending on y axis
   player.zIndex = player.y;
-
-  setDebugItem("position", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
 };

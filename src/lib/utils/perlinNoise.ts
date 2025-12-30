@@ -1,7 +1,8 @@
 // @ts-expect-error - This is the way to import noise
 import { Noise } from "noisejs";
 
-import { CHUNK_SIZE, isoPosToWorldPos } from "@/core/tiles";
+import { isoPosToWorldPos } from "@/core/tiles";
+import { TILES } from "@/lib/config/tiles";
 
 export const SEED = 47208;
 
@@ -30,13 +31,13 @@ export const generatePerlinNoise = (x: number, y: number): number => {
 };
 
 export const getPerlinNoise = (col: number, row: number): number[][] => {
-  const chunkX = col * CHUNK_SIZE;
-  const chunkY = row * CHUNK_SIZE;
+  const chunkX = col * TILES.CHUNK_SIZE;
+  const chunkY = row * TILES.CHUNK_SIZE;
   const values: number[][] = [];
 
-  for (let y = 0; y < CHUNK_SIZE; y++) {
+  for (let y = 0; y < TILES.CHUNK_SIZE; y++) {
     const row = [];
-    for (let x = 0; x < CHUNK_SIZE; x++) {
+    for (let x = 0; x < TILES.CHUNK_SIZE; x++) {
       const worldX = chunkX + x;
       const worldY = chunkY + y;
 
