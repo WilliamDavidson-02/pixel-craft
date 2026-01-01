@@ -167,12 +167,12 @@ const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[]
   const ground = chunk.ground?.children ?? [];
   const tiles: ContainerChild[] = [];
 
-  // We only want to check if the bottom of the player is in a tile since there is where the feet are
+  // We only want to check if the bottom of the player is in a tile since that is where the feet are
   for (const tile of ground) {
     const cx = tile.x + TILES.TILE_WIDTH_HALF;
     const cy = tile.y + TILES.TILE_HEIGHT_HALF;
 
-    // The anchor is set to bottom left of the player there for we dont have to add ane width or height
+    // The anchor is set to bottom left of the player therefor we dont have to add width or height
     const dx = Math.abs(player.x - cx) / TILES.TILE_WIDTH_HALF;
     const dy = Math.abs(player.y - cy) / TILES.TILE_HEIGHT_HALF;
 
@@ -233,10 +233,11 @@ const handlePlayerBounds = (player: Sprite): AllowedKeys[] => {
   const keys = getVisibleChunkKeys(row, col);
   const chunks = getVisibleChunks(keys);
 
-  const activeChunk = chunks.get(`${col}_${row}`)!; // There will always be this chunk since this is the keys are based on
-  const currentTiles = getAllActivePlayerTiles(activeChunk, player);
+  const activeChunk = chunks.get(`${col}_${row}`);
+  const currentTiles = activeChunk ? getAllActivePlayerTiles(activeChunk, player) : [];
 
-  // Including the chunks around the chunk that player is, since an surface item can have a part o fit covering in to a differnt chunk
+  // Including the chunks around the chunk that the player is in,
+  // since a object item can have a part of it covering in to a differnt chunk
   for (const [, chunk] of chunks) {
     if (!chunk.ground) {
       continue;

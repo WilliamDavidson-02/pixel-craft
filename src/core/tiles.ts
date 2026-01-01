@@ -9,7 +9,7 @@ import { getPerlinNoise } from "@/lib/utils/perlinNoise";
 
 import { type Chunk, type Chunks, type ColidedSides, type TileCallback } from "../types/tiles";
 
-export let RENDER_DISTANCE = 4;
+export let RENDER_DISTANCE = 2;
 const MAX_STORED_CHUNKS = RENDER_DISTANCE * RENDER_DISTANCE * 16;
 
 let chunks: Chunks = new Map();
@@ -99,7 +99,7 @@ export const isoPosToWorldPos = (x: number, y: number): Coordinates => {
 };
 
 export const getChunkByGlobalPosition = (x: number, y: number): { row: number; col: number } => {
-  const pos = isoPosToWorldPos(x, y);
+  const pos = isoPosToWorldPos(x + window.innerWidth / 2, y + window.innerHeight / 2);
 
   const col = Math.floor(pos.x / TILES.CHUNK_SIZE);
   const row = Math.floor(pos.y / TILES.CHUNK_SIZE);
