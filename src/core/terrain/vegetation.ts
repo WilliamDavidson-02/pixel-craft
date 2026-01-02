@@ -5,7 +5,7 @@ import { type ContainerChild, Sprite, type Texture } from "pixi.js";
 import type { Coordinates } from "@/core/entities/player";
 import { state } from "@/core/state";
 import { isTileWater } from "@/core/terrain/water";
-import { TILES } from "@/lib/config/tiles";
+import { TILE } from "@/lib/config/tile";
 import { SEED } from "@/lib/utils/perlinNoise";
 import { isoPosToWorldPos } from "@/lib/utils/position";
 
@@ -92,8 +92,8 @@ const getTextureFromPerlin = (perlin: number, x: number, y: number): Texture | n
 };
 
 export const convertVegetationPosToGround = (x: number, y: number): Coordinates => {
-  const newX = x - TILES.TILE_WIDTH_HALF;
-  const newY = y - TILES.TILE_HEIGHT * 0.75;
+  const newX = x - TILE.WIDTH_HALF;
+  const newY = y - TILE.HEIGHT * 0.75;
 
   return { x: newX, y: newY };
 };
@@ -104,7 +104,7 @@ export const createVegetationSprite = (data: VegetationSpriteData): Sprite | nul
   if (isTileWater(perlin[row][col])) return null;
 
   const x = xPosTile;
-  const y = yPosTile + TILES.TILE_HEIGHT * 0.75;
+  const y = yPosTile + TILE.HEIGHT * 0.75;
 
   const worldPos = isoPosToWorldPos(xPosTile, yPosTile);
 
@@ -123,7 +123,7 @@ export const createVegetationSprite = (data: VegetationSpriteData): Sprite | nul
     y: y,
     anchor: { x: 0.5, y: 1 }, // Trees root are always centered in assets there for we set the bottom center acnhor
     label: `${labelPos.x}_${labelPos.y}`,
-    zIndex: labelPos.y + TILES.TILE_HEIGHT_HALF,
+    zIndex: labelPos.y + TILE.HEIGHT_HALF,
   });
 
   return sprite;

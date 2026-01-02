@@ -1,4 +1,4 @@
-import { type Container, type ContainerChild, Sprite, type Ticker } from "pixi.js";
+import { type Container, type ContainerChild, Sprite } from "pixi.js";
 
 import {
   getChunk,
@@ -8,27 +8,19 @@ import {
   isChunkKey,
 } from "@/core/chunks";
 import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
-import { TILES } from "@/lib/config/tiles";
+import { PLAYER, TILE } from "@/lib/config";
 import { getIsoCollisionSides } from "@/lib/utils/collisions";
 import {
   getChunkByGlobalPosition,
   getIsometricTilePositions,
   isoPosToWorldPos,
 } from "@/lib/utils/position";
+import { type AllowedKeys, allowedKeys, type Coordinates } from "@/types/player";
 
 import { type Chunk, type ChunkKey } from "../../types/chunks";
 
-export type Coordinates = { x: number; y: number };
-
-export const PLAYER_WIDTH = 32;
-export const PLAYER_HEIGHT = 64;
-
-const DEFAULT_SPEED = 8;
-export const PLAYER_SPEED = DEFAULT_SPEED;
 const playerIsInWater = false;
 
-const allowedKeys = ["w", "a", "s", "d"] as const;
-type AllowedKeys = (typeof allowedKeys)[number];
 const playerMovementKeys = new Set<string>([]);
 
 let currentFrame = 0;
@@ -98,16 +90,11 @@ const centerPlayerToCenterTile = (): Coordinates => {
   const yPos = window.innerHeight / 2;
   const { x, y } = isoPosToWorldPos(xPos, yPos);
 
-  const { yPosTile, xPosTile } = getIsometricTilePositions(
-    y,
-    x,
-    TILES.TILE_WIDTH_HALF,
-    TILES.TILE_HEIGHT_HALF,
-  );
+  const { yPosTile, xPosTile } = getIsometricTilePositions(y, x, TILE.WIDTH_HALF, TILE.HEIGHT_HALF);
 
   return {
-    x: xPosTile - PLAYER_WIDTH / 2,
-    y: yPosTile + PLAYER_HEIGHT / 2,
+    x: xPosTile - PLAYER.WIDTH / 2,
+    y: yPosTile + PLAYER.HEIGHT / 2,
   };
 };
 
@@ -119,8 +106,8 @@ export const createPlayer = (): Sprite => {
   player.label = "player";
   player.x = x;
   player.y = y;
-  player.width = PLAYER_WIDTH;
-  player.height = PLAYER_HEIGHT;
+  player.width = PLAYER.WIDTH;
+  player.height = PLAYER.HEIGHT;
 
   animationKey = getPlayerAnimationKey(playerMovementKeys);
 
@@ -131,7 +118,7 @@ const isAllowedKey = (key: string): key is AllowedKeys => {
   return allowedKeys.includes(key as AllowedKeys);
 };
 
-export const registerPlayerMovement = (key: string): void => {
+export const registerPlayerMovement = (key: string) => {
   if (isAllowedKey(key) && !playerMovementKeys.has(key)) {
     const opposites = { w: "s", s: "w", a: "d", d: "a" };
 
@@ -144,24 +131,24 @@ export const registerPlayerMovement = (key: string): void => {
   }
 };
 
-export const removePlayerMovement = (key: string): void => {
+export const removePlayerMovement = (key: string) => {
   if (isAllowedKey(key) && playerMovementKeys.has(key)) {
     playerMovementKeys.delete(key);
   }
 };
 
-export const isPlayerMoving = (): boolean => {
+export const isPlayerMoving = () => {
   return playerMovementKeys.size !== 0;
 };
 
-export const isPlayerStopping = (): boolean => {
+export const isPlayerStopping = () => {
   return playerMovementKeys.size === 0 && currentFrame !== 0;
 };
 
 export const setPlayerAnimation = (
   key: string | null = animationKey,
   frame: number | null = currentFrame,
-): void => {
+) => {
   currentFrame = frame ?? currentFrame;
   animationKey = key ?? animationKey;
 };
@@ -172,12 +159,12 @@ const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[]
 
   // We only want to check if the bottom of the player is in a tile since that is where the feet are
   for (const tile of ground) {
-    const cx = tile.x + TILES.TILE_WIDTH_HALF;
-    const cy = tile.y + TILES.TILE_HEIGHT_HALF;
+    const cx = tile.x + TILE.WIDTH_HALF;
+    const cy = tile.y + TILE.HEIGHT_HALF;
 
     // The anchor is set to bottom left of the player therefor we dont have to add width or height
-    const dx = Math.abs(player.x - cx) / TILES.TILE_WIDTH_HALF;
-    const dy = Math.abs(player.y - cy) / TILES.TILE_HEIGHT_HALF;
+    const dx = Math.abs(player.x - cx) / TILE.WIDTH_HALF;
+    const dy = Math.abs(player.y - cy) / TILE.HEIGHT_HALF;
 
     const isInIsometricTile = dx + dy <= 1;
 
@@ -189,11 +176,7 @@ const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[]
   return tiles;
 };
 
-const isPlayerBehindItem = (
-  item: ContainerChild,
-  groundTile: ContainerChild,
-  player: Sprite,
-): boolean => {
+const isPlayerBehindItem = (item: ContainerChild, groundTile: ContainerChild, player: Sprite) => {
   // To place an item i.e vegetation on a tile but still allow the assets to display above the tile we set the anchor at bottom center
   const itemLeft = item.x - item.width / 2;
   const itemRight = item.x + item.width / 2;
@@ -206,12 +189,12 @@ const isPlayerBehindItem = (
   const isLeft = playerRight > itemLeft && playerRight < itemRight;
   const isTop = player.y > itemTop && player.y < item.y;
   const isBottom = playerTop < item.y && playerTop > itemTop;
-  const isAboveGroundTile = player.y < groundTile.y + TILES.TILE_HEIGHT_HALF;
+  const isAboveGroundTile = player.y < groundTile.y + TILE.HEIGHT_HALF;
 
   return isAboveGroundTile && (isRight || isLeft) && (isTop || isBottom);
 };
 
-export const putPlayerInChunk = (player: Sprite): void => {
+export const putPlayerInChunk = (player: Sprite) => {
   const { row, col } = getChunkByGlobalPosition(player.x, player.y);
 
   const newChunk = getChunk(row, col);
@@ -300,7 +283,7 @@ const handlePlayerBounds = (player: Sprite): AllowedKeys[] => {
   return allowedDirection;
 };
 
-export const movePlayerTo = (x: number, y: number, world: Container, player: Sprite): void => {
+export const movePlayerTo = (x: number, y: number, world: Container, player: Sprite) => {
   const xDiff = world.x - x;
   const yDiff = world.y - y;
 
@@ -311,13 +294,11 @@ export const movePlayerTo = (x: number, y: number, world: Container, player: Spr
   player.x -= xDiff;
 };
 
-export const movePlayerPosition = (player: Sprite, world: Container, ticker: Ticker): void => {
-  // We invert the momvent on the player to keep in in the center
-
+export const movePlayerPosition = (player: Sprite, world: Container, deltaTime: number) => {
   // Put player in the correct chunk so zIndex will work on surface items
   putPlayerInChunk(player);
   const allowedDirection = handlePlayerBounds(player);
-  const distance = ticker.deltaTime * PLAYER_SPEED;
+  const distance = deltaTime * PLAYER.SPEED;
 
   if (playerMovementKeys.has("w") && allowedDirection.includes("w")) {
     world.y += distance;

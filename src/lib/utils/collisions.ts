@@ -1,11 +1,11 @@
 import type { ContainerChild, Sprite } from "pixi.js";
 
-import { TILES } from "@/lib/config/tiles";
+import { TILE } from "@/lib/config/tile";
 import type { ColidedSides } from "@/types/tiles";
 
 export const getIsoCollisionSides = (tile: ContainerChild, player: Sprite): ColidedSides => {
-  const cx = tile.x + TILES.TILE_WIDTH_HALF;
-  const cy = tile.y + TILES.TILE_HEIGHT_HALF;
+  const cx = tile.x + TILE.WIDTH_HALF;
+  const cy = tile.y + TILE.HEIGHT_HALF;
 
   // Before this function is called we alredy know that we have collided with the tile
   // This function is to determin on what side we colided

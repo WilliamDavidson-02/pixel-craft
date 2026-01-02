@@ -2,13 +2,7 @@ import { initDevtools } from "@pixi/devtools";
 import { Container, Culler, Rectangle } from "pixi.js";
 
 import { loadAllinitialAssets } from "@/core/assets";
-import {
-  chunkCreationList,
-  createChunk,
-  renderChunks,
-  setNewChunksToRender,
-  updateVisibleChunks,
-} from "@/core/chunks";
+import { renderChunks } from "@/core/chunks";
 import {
   createPlayer,
   isPlayerMoving,
@@ -18,7 +12,7 @@ import {
   removePlayerMovement,
 } from "@/core/entities/player";
 import { state } from "@/core/state";
-import { LABELS } from "@/lib/config/labels";
+import { LABELS } from "@/lib/config";
 import { renderDuebugItems, setDebugItem } from "@/lib/debug";
 import { setRenderDistance } from "@/lib/utils/renderDistance";
 import { handleWindowResize } from "@/lib/utils/window";
@@ -42,13 +36,12 @@ const init = async (): Promise<void> => {
     eventMode: "static",
     label: LABELS.APP.WORLD,
   });
-
   state.app.stage.addChild(world);
 
   const objectLayer = new Container({ label: LABELS.APP.OBJECT });
   const groundLayer = new Container({ label: LABELS.APP.GROUND });
-  renderChunks(world, groundLayer, objectLayer);
   world.addChild(groundLayer, objectLayer);
+  renderChunks(world, groundLayer, objectLayer);
 
   const player = createPlayer();
   putPlayerInChunk(player);
@@ -57,14 +50,7 @@ const init = async (): Promise<void> => {
 
   state.app.ticker.add((ticker) => {
     if (isPlayerMoving()) {
-      movePlayerPosition(player, world, ticker);
-      setNewChunksToRender(world);
-
-      if (chunkCreationList.length > 0) {
-        createChunk(chunkCreationList[0]);
-      }
-
-      updateVisibleChunks(world, groundLayer, objectLayer);
+      movePlayerPosition(player, world, ticker.deltaTime);
     }
 
     setDebugItem("fps", Math.floor(ticker.FPS));

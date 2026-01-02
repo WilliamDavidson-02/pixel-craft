@@ -2,7 +2,7 @@ import type { Container } from "pixi.js";
 
 import { state } from "@/core/state";
 import { createTiles } from "@/core/tiles";
-import { TILES } from "@/lib/config/tiles";
+import { CHUNK } from "@/lib/config";
 import { getChunkByGlobalPosition } from "@/lib/utils/position";
 import { RENDER_DISTANCE } from "@/lib/utils/renderDistance";
 import type { Chunk, ChunkKey, Chunks } from "@/types/chunks";
@@ -13,8 +13,8 @@ let currentChunk = "";
 const MAX_STORED_CHUNKS = RENDER_DISTANCE * RENDER_DISTANCE * 16;
 
 export const getChunkKey = (row: number, col: number): ChunkKey => {
-  const chunkX = Math.floor(col / TILES.CHUNK_SIZE);
-  const chunkY = Math.floor(row / TILES.CHUNK_SIZE);
+  const chunkX = Math.floor(col / CHUNK.SIZE);
+  const chunkY = Math.floor(row / CHUNK.SIZE);
 
   return `${chunkX}_${chunkY}`;
 };
@@ -72,8 +72,7 @@ export const renderChunks = (world: Container, groundLayer: Container, objectLay
   const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
   const keys = getVisibleChunkKeys(row, col);
 
-  const newChunkKeys = keys.filter((key) => !state.chunks.has(key));
-  createTiles(newChunkKeys);
+  createTiles(keys);
 
   for (const [, chunk] of state.chunks) {
     if (chunk.ground) {
@@ -124,10 +123,10 @@ export const updateVisibleChunks = (
   );
   groundLayer.removeChild(...groundChunksToRemove);
 
-  const surfaceChunksToRemove = groundLayer.children.filter(
+  const objectChunksToRemove = objectLayer.children.filter(
     (chunk) => !visibleChunks.has(chunk.label),
   );
-  objectLayer.removeChild(...surfaceChunksToRemove);
+  objectLayer.removeChild(...objectChunksToRemove);
 
   const currentGroundChunks = new Set(groundLayer.children.map((chunk) => chunk.label));
   for (const key of keys) {

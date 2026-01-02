@@ -3,7 +3,7 @@ import { Container } from "pixi.js";
 import { getCellFromKey } from "@/core/chunks";
 import { state } from "@/core/state";
 import { createGroundSprite } from "@/core/terrain/ground";
-import { TILES } from "@/lib/config/tiles";
+import { CHUNK, TILE } from "@/lib/config";
 import { getPerlinNoise } from "@/lib/utils/perlinNoise";
 import { getIsometricTilePositions } from "@/lib/utils/position";
 
@@ -26,15 +26,15 @@ export const createTiles = (keys: string[]): void => {
     const cellValue = getCellFromKey(key);
     const perlin = getPerlinNoise(cellValue.col, cellValue.row);
 
-    loopTiles(TILES.CHUNK_SIZE, TILES.CHUNK_SIZE, (row, col) => {
-      const currentRow = cellValue.row * TILES.CHUNK_SIZE + row;
-      const currentCol = cellValue.col * TILES.CHUNK_SIZE + col;
+    loopTiles(CHUNK.SIZE, CHUNK.SIZE, (row, col) => {
+      const currentRow = cellValue.row * CHUNK.SIZE + row;
+      const currentCol = cellValue.col * CHUNK.SIZE + col;
 
       const { xPosTile, yPosTile } = getIsometricTilePositions(
         currentRow,
         currentCol,
-        TILES.TILE_WIDTH_HALF,
-        TILES.TILE_HEIGHT_HALF,
+        TILE.WIDTH_HALF,
+        TILE.HEIGHT_HALF,
       );
 
       const groundSprite = createGroundSprite({ xPosTile, yPosTile, perlin, row, col });
