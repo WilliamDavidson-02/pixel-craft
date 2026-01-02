@@ -3,6 +3,13 @@ import { Container, Culler, Rectangle } from "pixi.js";
 
 import { loadAllinitialAssets } from "@/core/assets";
 import {
+  chunkCreationList,
+  createChunk,
+  renderChunks,
+  setNewChunksToRender,
+  updateVisibleChunks,
+} from "@/core/chunks";
+import {
   createPlayer,
   isPlayerMoving,
   movePlayerPosition,
@@ -11,16 +18,9 @@ import {
   removePlayerMovement,
 } from "@/core/entities/player";
 import { state } from "@/core/state";
-import {
-  chunkCreationList,
-  createChunk,
-  setInitalTiles,
-  setNewChunksToRender,
-  setRenderDistance,
-  updateVisibleChunks,
-} from "@/core/tiles";
 import { LABELS } from "@/lib/config/labels";
 import { renderDuebugItems, setDebugItem } from "@/lib/debug";
+import { setRenderDistance } from "@/lib/utils/renderDistance";
 import { handleWindowResize } from "@/lib/utils/window";
 
 let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
@@ -47,7 +47,7 @@ const init = async (): Promise<void> => {
 
   const objectLayer = new Container({ label: LABELS.APP.OBJECT });
   const groundLayer = new Container({ label: LABELS.APP.GROUND });
-  setInitalTiles(world, groundLayer, objectLayer);
+  renderChunks(world, groundLayer, objectLayer);
   world.addChild(groundLayer, objectLayer);
 
   const player = createPlayer();

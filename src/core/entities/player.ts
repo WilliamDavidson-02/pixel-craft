@@ -1,19 +1,22 @@
 import { type Container, type ContainerChild, Sprite, type Ticker } from "pixi.js";
 
-import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
 import {
   getChunk,
-  getChunkByGlobalPosition,
   getChunkByKey,
-  getIsoCollisionSides,
-  getIsometricTilePositions,
   getVisibleChunkKeys,
   getVisibleChunks,
-  isoPosToWorldPos,
-} from "@/core/tiles";
+  isChunkKey,
+} from "@/core/chunks";
+import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
 import { TILES } from "@/lib/config/tiles";
+import { getIsoCollisionSides } from "@/lib/utils/collisions";
+import {
+  getChunkByGlobalPosition,
+  getIsometricTilePositions,
+  isoPosToWorldPos,
+} from "@/lib/utils/position";
 
-import { type Chunk } from "../../types/tiles";
+import { type Chunk, type ChunkKey } from "../../types/chunks";
 
 export type Coordinates = { x: number; y: number };
 
@@ -31,7 +34,7 @@ const playerMovementKeys = new Set<string>([]);
 let currentFrame = 0;
 let animationKey = "down-center";
 
-let playerChunkKey = "";
+let playerChunkKey: ChunkKey | undefined;
 
 const getVerticleDirection = (verticle: string): "up" | "down" => {
   return verticle === "w" ? "up" : "down";
@@ -213,17 +216,20 @@ export const putPlayerInChunk = (player: Sprite): void => {
 
   const newChunk = getChunk(row, col);
   const oldChunk = getChunkByKey(playerChunkKey);
-  if (!newChunk || !newChunk.surface) return;
-  const newKey = newChunk.surface.label;
+  if (!newChunk || !newChunk.object) return;
+  const newKey = newChunk.object.label;
 
-  if (newKey === oldChunk?.surface?.label) return;
+  if (newKey === oldChunk?.object?.label) return;
 
-  if (oldChunk?.surface) {
-    oldChunk.surface.removeChild(player);
+  if (oldChunk?.object) {
+    oldChunk.object.removeChild(player);
   }
 
-  newChunk.surface?.addChild(player);
-  playerChunkKey = newKey;
+  newChunk.object?.addChild(player);
+
+  if (isChunkKey(newKey)) {
+    playerChunkKey = newKey;
+  }
 };
 
 // eslint-disable-next-line sonarjs/cognitive-complexity

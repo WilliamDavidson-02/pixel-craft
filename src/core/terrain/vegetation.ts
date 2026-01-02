@@ -5,11 +5,11 @@ import { type ContainerChild, Sprite, type Texture } from "pixi.js";
 import type { Coordinates } from "@/core/entities/player";
 import { state } from "@/core/state";
 import { isTileWater } from "@/core/terrain/water";
-import { isoPosToWorldPos } from "@/core/tiles";
 import { TILES } from "@/lib/config/tiles";
 import { SEED } from "@/lib/utils/perlinNoise";
+import { isoPosToWorldPos } from "@/lib/utils/position";
 
-import { type Chunk } from "../../types/tiles";
+import { type Chunk } from "../../types/chunks";
 
 type VegetationSpriteData = {
   xPosTile: number;
@@ -133,5 +133,5 @@ export const getVegetationFromGround = (
   chunk: Chunk,
   label: string,
 ): ContainerChild | null | undefined => {
-  return chunk.surface?.getChildByLabel(label);
+  return chunk.object?.getChildByLabel(label);
 };

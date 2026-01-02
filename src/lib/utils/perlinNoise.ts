@@ -1,8 +1,8 @@
 // @ts-expect-error - This is the way to import noise
 import { Noise } from "noisejs";
 
-import { isoPosToWorldPos } from "@/core/tiles";
 import { TILES } from "@/lib/config/tiles";
+import { isoPosToWorldPos } from "@/lib/utils/position";
 
 export const SEED = 47208;
 

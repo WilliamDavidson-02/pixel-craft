@@ -1,26 +1,13 @@
-import { Container, type ContainerChild, type Sprite } from "pixi.js";
+import { Container } from "pixi.js";
 
-import type { Coordinates } from "@/core/entities/player";
+import { getCellFromKey } from "@/core/chunks";
+import { state } from "@/core/state";
 import { createGroundSprite } from "@/core/terrain/ground";
 import { TILES } from "@/lib/config/tiles";
-import { setDebugItem } from "@/lib/debug";
-import { getCellFromKey } from "@/lib/utils/chunks";
 import { getPerlinNoise } from "@/lib/utils/perlinNoise";
+import { getIsometricTilePositions } from "@/lib/utils/position";
 
-import { type Chunk, type Chunks, type ColidedSides, type TileCallback } from "../types/tiles";
-
-export let RENDER_DISTANCE = 2;
-const MAX_STORED_CHUNKS = RENDER_DISTANCE * RENDER_DISTANCE * 16;
-
-let chunks: Chunks = new Map();
-export let chunkCreationList: string[] = [];
-let currentChunk = "";
-
-export const setRenderDistance = (): void => {
-  const width = window.innerWidth;
-  const chunkPadding = 2; // We want some extra chunks around the chunks that can fit in the screen so there is no void in the corners
-  RENDER_DISTANCE = Math.ceil(width / (TILES.CHUNK_SIZE * TILES.TILE_WIDTH_HALF)) + chunkPadding;
-};
+import { type TileCallback } from "../types/tiles";
 
 export const loopTiles = <T>(width: number, height: number, callback: TileCallback<T>): T[] => {
   const results: T[] = [];
@@ -52,180 +39,16 @@ export const createTiles = (keys: string[]): void => {
 
       const groundSprite = createGroundSprite({ xPosTile, yPosTile, perlin, row, col });
 
-      if (!chunks.has(key)) {
-        chunks.set(key, {
+      if (!state.chunks.has(key)) {
+        state.chunks.set(key, {
           ground: new Container({ label: key, zIndex: currentRow + currentCol, cullable: true }),
-          surface: new Container({ label: key, zIndex: currentRow + currentCol, cullable: true }),
+          object: new Container({ label: key, zIndex: currentRow + currentCol, cullable: true }),
         });
       }
 
       if (groundSprite) {
-        chunks.get(key)?.ground?.addChild(groundSprite);
+        state.chunks.get(key)?.ground?.addChild(groundSprite);
       }
     });
   }
-};
-
-export const getIsometricTilePositions = (
-  row: number,
-  col: number,
-  width: number,
-  height: number,
-): { xPosTile: number; yPosTile: number } => {
-  const xPosTile = (col - row) * width;
-  const yPosTile = (col + row) * height;
-
-  return { xPosTile, yPosTile };
-};
-
-export const getGlobalPositionFromNoneStagedTile = (
-  parent: Container,
-  x: number,
-  y: number,
-): Coordinates => {
-  const globalParent = parent.getGlobalPosition();
-
-  return {
-    x: x + globalParent.x,
-    y: y + globalParent.y,
-  };
-};
-
-export const isoPosToWorldPos = (x: number, y: number): Coordinates => {
-  const xPos = Math.floor((x / TILES.TILE_WIDTH_HALF + y / TILES.TILE_HEIGHT_HALF) / 2);
-  const yPos = Math.floor((y / TILES.TILE_HEIGHT_HALF - x / TILES.TILE_WIDTH_HALF) / 2);
-
-  return { x: xPos, y: yPos };
-};
-
-export const getChunkByGlobalPosition = (x: number, y: number): { row: number; col: number } => {
-  const pos = isoPosToWorldPos(x + window.innerWidth / 2, y + window.innerHeight / 2);
-
-  const col = Math.floor(pos.x / TILES.CHUNK_SIZE);
-  const row = Math.floor(pos.y / TILES.CHUNK_SIZE);
-
-  setDebugItem("chunk", { row, col });
-
-  return { row, col };
-};
-
-export const getChunkByKey = (key: string): Chunk | undefined => {
-  return chunks.get(key);
-};
-
-export const getChunk = (row: number, col: number): Chunk | undefined => {
-  return chunks.get(`${col}_${row}`);
-};
-
-export const getVisibleChunkKeys = (row: number, col: number, area = RENDER_DISTANCE): string[] => {
-  const keys: string[] = [];
-
-  for (let chunkY = row - area; chunkY <= row + area; chunkY++) {
-    for (let chunkX = col - area; chunkX <= col + area; chunkX++) {
-      keys.push(`${chunkX}_${chunkY}`);
-    }
-  }
-
-  return keys;
-};
-
-export const getVisibleChunks = (keys: string[]): Chunks => {
-  const selectedChunks: Chunks = new Map();
-
-  for (const key of keys) {
-    const chunk = chunks.get(key);
-
-    if (chunk) {
-      selectedChunks.set(key, chunk);
-    }
-  }
-
-  return selectedChunks;
-};
-
-export const setInitalTiles = (world: Container, ground: Container, surface: Container): void => {
-  // Inverting the world pos since we move the world the other way to simulate movement
-  const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
-  const keys = getVisibleChunkKeys(row, col);
-
-  const newChunkKeys = keys.filter((key) => !chunks.has(key));
-  createTiles(newChunkKeys);
-
-  for (const [, chunk] of chunks) {
-    if (chunk.ground) {
-      ground.addChild(chunk.ground);
-    }
-    if (chunk.surface) {
-      surface.addChild(chunk.surface);
-    }
-  }
-};
-
-export const setNewChunksToRender = (world: Container): void => {
-  // Inverting the world pos since we move the world the other way to simulate movement
-  const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
-  const keys = getVisibleChunkKeys(row, col);
-  chunkCreationList = keys.filter((key) => !chunks.has(key) && !chunkCreationList.includes(key));
-};
-
-export const createChunk = (key: string): void => {
-  if (currentChunk) return;
-  currentChunk = key;
-  createTiles([key]);
-
-  chunkCreationList = chunkCreationList.filter((chunk) => chunk !== key);
-  setTimeout(() => (currentChunk = ""), 100); // Spacing chunk creation to not block player movment for an extended period of time
-};
-
-export const updateVisibleChunks = (
-  world: Container,
-  ground: Container,
-  surface: Container,
-): void => {
-  // Inverting the world pos since we move the world the other way to simulate movement
-  const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
-  const keys = getVisibleChunkKeys(row, col);
-
-  const visibleChunks = getVisibleChunks(keys);
-
-  // To prevent the memory of chunks getting to large we clear the tiles that are not in view
-  if (chunks.size >= MAX_STORED_CHUNKS) {
-    chunks = visibleChunks;
-  }
-
-  const groundChunksToRemove = ground.children.filter((chunk) => !visibleChunks.has(chunk.label));
-  ground.removeChild(...groundChunksToRemove);
-
-  const surfaceChunksToRemove = ground.children.filter((chunk) => !visibleChunks.has(chunk.label));
-  surface.removeChild(...surfaceChunksToRemove);
-
-  const currentGroundChunks = new Set(ground.children.map((chunk) => chunk.label));
-  for (const key of keys) {
-    if (!currentGroundChunks.has(key)) {
-      const chunk = visibleChunks.get(key);
-      if (chunk?.ground) {
-        ground.addChild(chunk.ground);
-      }
-
-      if (chunk?.surface) {
-        surface.addChild(chunk.surface);
-      }
-    }
-  }
-};
-
-export const getIsoCollisionSides = (tile: ContainerChild, player: Sprite): ColidedSides => {
-  const cx = tile.x + TILES.TILE_WIDTH_HALF;
-  const cy = tile.y + TILES.TILE_HEIGHT_HALF;
-
-  // Before this function is called we alredy know that we have collided with the tile
-  // This function is to determin on what side we colided
-  return {
-    "top-left": player.x + player.width < cx && player.y < cy,
-    "bottom-left": player.x + player.width < cx && player.y > cy,
-    "bottom-right": player.x > cx && player.y > cy,
-    "top-right": player.x > cx && player.y < cy,
-    top: player.x + player.width > cx && player.y < cy,
-    bottom: player.x + player.width > cx && player.y > cy,
-  };
 };

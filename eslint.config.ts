@@ -59,10 +59,6 @@ export default defineConfig([
         "error",
         { prefer: "type-imports", disallowTypeAnnotations: false },
       ],
-      "@typescript-eslint/explicit-function-return-type": [
-        "warn",
-        { allowExpressions: true, allowTypedFunctionExpressions: true },
-      ],
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },

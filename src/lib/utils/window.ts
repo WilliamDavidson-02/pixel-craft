@@ -1,6 +1,7 @@
 import type { Container } from "pixi.js";
 
-import { setRenderDistance, updateVisibleChunks } from "@/core/tiles";
+import { updateVisibleChunks } from "@/core/chunks";
+import { setRenderDistance } from "@/lib/utils/renderDistance";
 
 let isResizing: NodeJS.Timeout | null = null;
 
