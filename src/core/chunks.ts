@@ -1,4 +1,4 @@
-import type { Container } from "pixi.js";
+import { Container } from "pixi.js";
 
 import { state } from "@/core/state";
 import { createTiles } from "@/core/tiles";
@@ -7,10 +7,8 @@ import { getChunkByGlobalPosition } from "@/lib/utils/position";
 import { RENDER_DISTANCE } from "@/lib/utils/renderDistance";
 import type { Chunk, ChunkKey, Chunks } from "@/types/chunks";
 
-export let chunkCreationList: string[] = [];
-let currentChunk = "";
-
-const MAX_STORED_CHUNKS = RENDER_DISTANCE * RENDER_DISTANCE * 16;
+const MAX_STORED_CHUNKS = 250;
+let isRendering = false;
 
 export const getChunkKey = (row: number, col: number): ChunkKey => {
   const chunkX = Math.floor(col / CHUNK.SIZE);
@@ -41,8 +39,12 @@ export const getChunkByKey = (key?: ChunkKey): Chunk | undefined => {
   return state.chunks.get(key);
 };
 
-export const getVisibleChunkKeys = (row: number, col: number, area = RENDER_DISTANCE): string[] => {
-  const keys: string[] = [];
+export const getVisibleChunkKeys = (
+  row: number,
+  col: number,
+  area = RENDER_DISTANCE,
+): ChunkKey[] => {
+  const keys: ChunkKey[] = [];
 
   for (let chunkY = row - area; chunkY <= row + area; chunkY++) {
     for (let chunkX = col - area; chunkX <= col + area; chunkX++) {
@@ -53,7 +55,7 @@ export const getVisibleChunkKeys = (row: number, col: number, area = RENDER_DIST
   return keys;
 };
 
-export const getVisibleChunks = (keys: string[]): Chunks => {
+export const getVisibleChunks = (keys: ChunkKey[]): Chunks => {
   const selectedChunks: Chunks = new Map();
 
   for (const key of keys) {
@@ -67,50 +69,27 @@ export const getVisibleChunks = (keys: string[]): Chunks => {
   return selectedChunks;
 };
 
-export const renderChunks = (world: Container, groundLayer: Container, objectLayer: Container) => {
-  // Inverting the world pos since we move the world the other way to simulate movement
-  const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
-  const keys = getVisibleChunkKeys(row, col);
-
-  createTiles(keys);
-
-  for (const [, chunk] of state.chunks) {
-    if (chunk.ground) {
-      groundLayer.addChild(chunk.ground);
-    }
-    if (chunk.object) {
-      objectLayer.addChild(chunk.object);
-    }
-  }
+const getChunksToRemove = (layer: Container, visibleChunks: Chunks) => {
+  return layer.children.filter((chunk) => !visibleChunks.has(chunk.label));
 };
 
-export const setNewChunksToRender = (world: Container): void => {
-  // Inverting the world pos since we move the world the other way to simulate movement
-  const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
-  const keys = getVisibleChunkKeys(row, col);
-  chunkCreationList = keys.filter(
-    (key) => !state.chunks.has(key) && !chunkCreationList.includes(key),
-  );
+const createEmptyChunk = (key: ChunkKey): Chunk => {
+  const { row, col } = getCellFromKey(key);
+  const zIndex = row + col;
+
+  return {
+    ground: new Container({ label: key, zIndex, cullable: true }),
+    object: new Container({ label: key, zIndex, cullable: true }),
+  };
 };
 
-export const createChunk = (key: string): void => {
-  if (currentChunk) return;
-  currentChunk = key;
-  createTiles([key]);
+export const renderChunks = (world: Container, groundLayer: Container) => {
+  isRendering = true;
 
-  chunkCreationList = chunkCreationList.filter((chunk) => chunk !== key);
-  setTimeout(() => (currentChunk = ""), 100); // Spacing chunk creation to not block player movment for an extended period of time
-};
-
-export const updateVisibleChunks = (
-  world: Container,
-  groundLayer: Container,
-  objectLayer: Container,
-): void => {
   // Inverting the world pos since we move the world the other way to simulate movement
   const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
-  const keys = getVisibleChunkKeys(row, col);
 
+  const keys = getVisibleChunkKeys(row, col);
   const visibleChunks = getVisibleChunks(keys);
 
   // To prevent the memory of chunks getting to large we clear the tiles that are not in view
@@ -118,27 +97,54 @@ export const updateVisibleChunks = (
     state.chunks = visibleChunks;
   }
 
-  const groundChunksToRemove = groundLayer.children.filter(
-    (chunk) => !visibleChunks.has(chunk.label),
-  );
-  groundLayer.removeChild(...groundChunksToRemove);
-
-  const objectChunksToRemove = objectLayer.children.filter(
-    (chunk) => !visibleChunks.has(chunk.label),
-  );
-  objectLayer.removeChild(...objectChunksToRemove);
+  // This should not run on inital render since there is no old chunks to remove
+  if (groundLayer.children.length > 0) {
+    const groundChunksToRemove = getChunksToRemove(groundLayer, visibleChunks);
+    groundLayer.removeChild(...groundChunksToRemove);
+  }
 
   const currentGroundChunks = new Set(groundLayer.children.map((chunk) => chunk.label));
+
   for (const key of keys) {
-    if (!currentGroundChunks.has(key)) {
-      const chunk = visibleChunks.get(key);
+    if (!currentGroundChunks.has(key) && !visibleChunks.has(key)) {
+      const chunk = createEmptyChunk(key);
+      const tiles = createTiles(key);
+
       if (chunk?.ground) {
+        chunk.ground.addChild(...tiles);
         groundLayer.addChild(chunk.ground);
       }
 
-      if (chunk?.object) {
-        objectLayer.addChild(chunk.object);
+      state.chunks.set(key, chunk);
+    } else if (!currentGroundChunks.has(key) && visibleChunks.has(key)) {
+      const chunk = visibleChunks.get(key);
+
+      if (chunk?.ground) {
+        groundLayer.addChild(chunk.ground);
       }
     }
   }
+
+  isRendering = false;
+};
+
+export const shouldRenderNewChunks = (x: number, y: number) => {
+  if (isRendering) return false;
+
+  const { position } = state.player;
+
+  const xDiff = Math.abs(position.x - x);
+  const yDiff = Math.abs(position.y - y);
+
+  if (xDiff > CHUNK.WIDTH * 2) {
+    state.player.position.x = x;
+    return true;
+  }
+
+  if (yDiff > CHUNK.HEIGHT * 2) {
+    state.player.position.y = y;
+    return true;
+  }
+
+  return false;
 };

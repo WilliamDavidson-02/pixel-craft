@@ -114,6 +114,7 @@ export const createPlayer = (): Sprite => {
   player.height = PLAYER.HEIGHT;
 
   state.player.animation.key = getPlayerAnimationKey(state.player.movementKeys);
+  state.player.position = { x, y };
 
   return player;
 };

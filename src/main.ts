@@ -2,7 +2,7 @@ import { initDevtools } from "@pixi/devtools";
 import { Container, Culler, Rectangle } from "pixi.js";
 
 import { loadAllinitialAssets } from "@/core/assets";
-import { renderChunks } from "@/core/chunks";
+import { renderChunks, shouldRenderNewChunks } from "@/core/chunks";
 import {
   createPlayer,
   isPlayerMoving,
@@ -38,10 +38,9 @@ const init = async (): Promise<void> => {
   });
   state.app.stage.addChild(world);
 
-  const objectLayer = new Container({ label: LABELS.APP.OBJECT });
   const groundLayer = new Container({ label: LABELS.APP.GROUND });
-  world.addChild(groundLayer, objectLayer);
-  renderChunks(world, groundLayer, objectLayer);
+  world.addChild(groundLayer);
+  renderChunks(world, groundLayer);
 
   const player = createPlayer();
   putPlayerInChunk(player);
@@ -51,17 +50,21 @@ const init = async (): Promise<void> => {
   state.app.ticker.add((ticker) => {
     if (isPlayerMoving()) {
       movePlayerPosition(player, world, ticker.deltaTime);
+
+      if (shouldRenderNewChunks(player.x, player.y)) {
+        renderChunks(world, groundLayer);
+      }
     }
 
     setDebugItem("fps", Math.floor(ticker.FPS));
-    setDebugItem("position", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
+    setDebugItem("position", { x: player.x.toFixed(2), y: player.y.toFixed(2) });
     renderDuebugItems();
 
     Culler.shared.cull(world, view);
   });
 
   window.addEventListener("resize", () => {
-    handleWindowResize(world, groundLayer, objectLayer);
+    handleWindowResize(world, groundLayer);
     view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
   });
 };
