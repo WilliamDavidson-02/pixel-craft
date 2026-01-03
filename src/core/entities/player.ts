@@ -7,51 +7,55 @@ import {
   getVisibleChunks,
   isChunkKey,
 } from "@/core/chunks";
+import { state } from "@/core/state";
 import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
-import { PLAYER, TILE } from "@/lib/config";
+import { LABELS, PLAYER, TILE } from "@/lib/config";
 import { getIsoCollisionSides } from "@/lib/utils/collisions";
 import {
   getChunkByGlobalPosition,
   getIsometricTilePositions,
   isoPosToWorldPos,
 } from "@/lib/utils/position";
-import { type AllowedKeys, allowedKeys, type Coordinates } from "@/types/player";
+import { type Chunk } from "@/types/chunks";
+import {
+  type AllowedKeys,
+  allowedKeys,
+  type AnimationKey,
+  type Coordinates,
+  type Horizontal,
+  type Vertical,
+  type WaterKey,
+} from "@/types/player";
 
-import { type Chunk, type ChunkKey } from "../../types/chunks";
-
-const playerIsInWater = false;
-
-const playerMovementKeys = new Set<string>([]);
-
-let currentFrame = 0;
-let animationKey = "down-center";
-
-let playerChunkKey: ChunkKey | undefined;
-
-const getVerticleDirection = (verticle: string): "up" | "down" => {
+const getVerticleDirection = (verticle: AllowedKeys): Vertical => {
   return verticle === "w" ? "up" : "down";
 };
 
-const getHorizontalDirection = (horizontal: string): "left" | "right" => {
+const getHorizontalDirection = (horizontal: AllowedKeys): Horizontal => {
   return horizontal === "a" ? "left" : "right";
 };
 
-const getPlayerAnimationKey = (keys: Set<string>): string => {
+const isWaterKey = (key: AnimationKey): key is WaterKey => {
+  return key.startsWith("water-");
+};
+
+const getPlayerAnimationKey = (keys: Set<AllowedKeys>): AnimationKey => {
+  const currentKey = state.player.animation.key;
   // When player is created there is no keys that are active there for the early check
-  if (keys.size === 0 && playerIsInWater) {
-    return "water-" + animationKey;
+  if (keys.size === 0 && state.player.inWater) {
+    return isWaterKey(currentKey) ? currentKey : `water-${currentKey}`;
   }
 
   // We only want to use the first and second key that is active if a users has three keys active we ignore it
   if (keys.size > 2 || keys.size === 0) {
-    return animationKey;
+    return currentKey;
   }
 
   const verticalKeys = ["w", "s"];
   const horizontalKeys = ["a", "d"];
 
-  let vertical = "";
-  let horizontal = "";
+  let vertical: Vertical | null = null;
+  let horizontal: Horizontal | null = null;
 
   for (const key of keys) {
     if (verticalKeys.includes(key)) {
@@ -61,7 +65,7 @@ const getPlayerAnimationKey = (keys: Set<string>): string => {
     }
   }
 
-  let key = "";
+  let key: AnimationKey = currentKey;
 
   // Handle 1 key
   if (keys.size === 1) {
@@ -78,8 +82,8 @@ const getPlayerAnimationKey = (keys: Set<string>): string => {
     key = `${vertical}-${horizontal}`;
   }
 
-  if (playerIsInWater) {
-    key = "water-" + key;
+  if (state.player.inWater && !isWaterKey(key)) {
+    key = `water-${key}`;
   }
 
   return key;
@@ -103,13 +107,13 @@ export const createPlayer = (): Sprite => {
 
   const player = new Sprite();
   player.anchor.set(0, 1); // Left Bottom
-  player.label = "player";
+  player.label = LABELS.APP.PLAYER;
   player.x = x;
   player.y = y;
   player.width = PLAYER.WIDTH;
   player.height = PLAYER.HEIGHT;
 
-  animationKey = getPlayerAnimationKey(playerMovementKeys);
+  state.player.animation.key = getPlayerAnimationKey(state.player.movementKeys);
 
   return player;
 };
@@ -119,38 +123,38 @@ const isAllowedKey = (key: string): key is AllowedKeys => {
 };
 
 export const registerPlayerMovement = (key: string) => {
-  if (isAllowedKey(key) && !playerMovementKeys.has(key)) {
-    const opposites = { w: "s", s: "w", a: "d", d: "a" };
+  if (isAllowedKey(key) && !state.player.movementKeys.has(key)) {
+    const opposites = { w: "s", s: "w", a: "d", d: "a" } as const;
 
     // If we have to directions on the same axis it will mess with the animation key
-    if (playerMovementKeys.has(opposites[key])) {
+    if (state.player.movementKeys.has(opposites[key])) {
       removePlayerMovement(opposites[key]);
     }
 
-    playerMovementKeys.add(key);
+    state.player.movementKeys.add(key);
   }
 };
 
 export const removePlayerMovement = (key: string) => {
-  if (isAllowedKey(key) && playerMovementKeys.has(key)) {
-    playerMovementKeys.delete(key);
+  if (isAllowedKey(key) && state.player.movementKeys.has(key)) {
+    state.player.movementKeys.delete(key);
   }
 };
 
 export const isPlayerMoving = () => {
-  return playerMovementKeys.size !== 0;
+  return state.player.movementKeys.size !== 0;
 };
 
 export const isPlayerStopping = () => {
-  return playerMovementKeys.size === 0 && currentFrame !== 0;
+  return state.player.movementKeys.size === 0 && state.player.animation.currentFrame !== 0;
 };
 
 export const setPlayerAnimation = (
-  key: string | null = animationKey,
-  frame: number | null = currentFrame,
+  key: AnimationKey | null = state.player.animation.key,
+  frame: number | null = state.player.animation.currentFrame,
 ) => {
-  currentFrame = frame ?? currentFrame;
-  animationKey = key ?? animationKey;
+  state.player.animation.currentFrame = frame ?? state.player.animation.currentFrame;
+  state.player.animation.key = key ?? state.player.animation.key;
 };
 
 const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[] => {
@@ -198,7 +202,7 @@ export const putPlayerInChunk = (player: Sprite) => {
   const { row, col } = getChunkByGlobalPosition(player.x, player.y);
 
   const newChunk = getChunk(row, col);
-  const oldChunk = getChunkByKey(playerChunkKey);
+  const oldChunk = getChunkByKey(state.player.chunkKey);
   if (!newChunk || !newChunk.object) return;
   const newKey = newChunk.object.label;
 
@@ -211,7 +215,7 @@ export const putPlayerInChunk = (player: Sprite) => {
   newChunk.object?.addChild(player);
 
   if (isChunkKey(newKey)) {
-    playerChunkKey = newKey;
+    state.player.chunkKey = newKey;
   }
 };
 
@@ -300,22 +304,22 @@ export const movePlayerPosition = (player: Sprite, world: Container, deltaTime: 
   const allowedDirection = handlePlayerBounds(player);
   const distance = deltaTime * PLAYER.SPEED;
 
-  if (playerMovementKeys.has("w") && allowedDirection.includes("w")) {
+  if (state.player.movementKeys.has("w") && allowedDirection.includes("w")) {
     world.y += distance;
     player.y -= distance;
   }
 
-  if (playerMovementKeys.has("a") && allowedDirection.includes("a")) {
+  if (state.player.movementKeys.has("a") && allowedDirection.includes("a")) {
     world.x += distance * 2;
     player.x -= distance * 2;
   }
 
-  if (playerMovementKeys.has("s") && allowedDirection.includes("s")) {
+  if (state.player.movementKeys.has("s") && allowedDirection.includes("s")) {
     world.y -= distance;
     player.y += distance;
   }
 
-  if (playerMovementKeys.has("d") && allowedDirection.includes("d")) {
+  if (state.player.movementKeys.has("d") && allowedDirection.includes("d")) {
     world.x -= distance * 2;
     player.x += distance * 2;
   }
