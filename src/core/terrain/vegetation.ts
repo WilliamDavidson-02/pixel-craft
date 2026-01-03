@@ -2,14 +2,13 @@
 import { Noise } from "noisejs";
 import { type ContainerChild, Sprite, type Texture } from "pixi.js";
 
-import type { Coordinates } from "@/core/entities/player";
 import { state } from "@/core/state";
 import { isTileWater } from "@/core/terrain/water";
 import { TILE } from "@/lib/config/tile";
 import { SEED } from "@/lib/utils/perlinNoise";
 import { isoPosToWorldPos } from "@/lib/utils/position";
-
-import { type Chunk } from "../../types/chunks";
+import { type Chunk } from "@/types/chunks";
+import type { Coordinates } from "@/types/player";
 
 type VegetationSpriteData = {
   xPosTile: number;
