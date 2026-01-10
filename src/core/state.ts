@@ -1,6 +1,6 @@
 import { Application, type Renderer } from "pixi.js";
 
-import type { Chunks } from "@/types/chunks";
+import type { ChunkState } from "@/types/chunks";
 import type { PlayerState } from "@/types/player";
 
 import type { ASSETS } from "./assets";
@@ -8,7 +8,7 @@ import type { ASSETS } from "./assets";
 export type State = {
   app: Application<Renderer>;
   assets: ASSETS;
-  chunks: Chunks;
+  chunkState: ChunkState;
   player: PlayerState;
 };
 
@@ -22,9 +22,14 @@ const initialPlayerState: PlayerState = {
   inWater: false,
 };
 
+const initialChunkState: ChunkState = {
+  chunks: new Map(),
+  renderList: new Set(),
+};
+
 export const state: State = {
   app: new Application(),
   assets: {},
-  chunks: new Map(),
+  chunkState: initialChunkState,
   player: initialPlayerState,
 };

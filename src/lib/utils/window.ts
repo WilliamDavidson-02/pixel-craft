@@ -1,6 +1,6 @@
 import type { Container } from "pixi.js";
 
-import { renderChunks } from "@/core/chunks";
+import { setChunksRenderQueue } from "@/core/chunks";
 import { setRenderDistance } from "@/lib/utils/renderDistance";
 
 let isResizing: NodeJS.Timeout | null = null;
@@ -28,5 +28,5 @@ export const handleWindowResize = (world: Container, groundLayer: Container): vo
   // If the viewport is resized beyond what the staged renderer covers, we must update
   // the visible chunks. This also ensures chunks are removed when resizing to a much
   // smaller window size.
-  isResizing = setTimeout(() => renderChunks(world, groundLayer), 200);
+  isResizing = setTimeout(() => setChunksRenderQueue(world, groundLayer), 200);
 };

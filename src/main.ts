@@ -1,8 +1,15 @@
-import { initDevtools } from "@pixi/devtools";
 import { Container, Culler, Rectangle } from "pixi.js";
 
 import { loadAllinitialAssets } from "@/core/assets";
-import { renderChunks, shouldRenderNewChunks } from "@/core/chunks";
+import {
+  handleMaxStoredChunks,
+  hasRenderQueue,
+  isChunksMemoryFull,
+  renderChunk,
+  renderChunksSync,
+  setChunksRenderQueue,
+  shouldRenderNewChunks,
+} from "@/core/chunks";
 import {
   createPlayer,
   isPlayerMoving,
@@ -26,7 +33,6 @@ const init = async (): Promise<void> => {
     background: "#4a80ff",
   });
   document.body.appendChild(state.app.canvas);
-  initDevtools({ app: state.app });
 
   setRenderDistance();
   await loadAllinitialAssets();
@@ -40,7 +46,7 @@ const init = async (): Promise<void> => {
 
   const groundLayer = new Container({ label: LABELS.APP.GROUND });
   world.addChild(groundLayer);
-  renderChunks(world, groundLayer);
+  renderChunksSync(world, groundLayer);
 
   const player = createPlayer();
   putPlayerInChunk(player);
@@ -52,7 +58,13 @@ const init = async (): Promise<void> => {
       movePlayerPosition(player, world, ticker.deltaTime);
 
       if (shouldRenderNewChunks(player.x, player.y)) {
-        renderChunks(world, groundLayer);
+        setChunksRenderQueue(world, groundLayer);
+      }
+
+      if (hasRenderQueue()) {
+        renderChunk(groundLayer);
+      } else if (isChunksMemoryFull()) {
+        handleMaxStoredChunks(world);
       }
     }
 
