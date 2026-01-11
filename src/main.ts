@@ -6,7 +6,6 @@ import {
   hasRenderQueue,
   isChunksMemoryFull,
   renderChunk,
-  renderChunksSync,
   setChunksRenderQueue,
   shouldRenderNewChunks,
 } from "@/core/chunks";
@@ -45,7 +44,7 @@ const init = async (): Promise<void> => {
 
   const groundLayer = new Container({ label: LABELS.APP.GROUND });
   world.addChild(groundLayer);
-  renderChunksSync(world, groundLayer);
+  setChunksRenderQueue(world, groundLayer);
 
   const player = createPlayer();
   world.addChild(player);
@@ -60,11 +59,13 @@ const init = async (): Promise<void> => {
         setChunksRenderQueue(world, groundLayer);
       }
 
-      if (hasRenderQueue()) {
-        renderChunk(groundLayer);
-      } else if (isChunksMemoryFull()) {
+      if (isChunksMemoryFull()) {
         handleMaxStoredChunks(world);
       }
+    }
+
+    if (hasRenderQueue()) {
+      renderChunk(groundLayer);
     }
 
     setDebugItem("fps", Math.floor(ticker.FPS));
