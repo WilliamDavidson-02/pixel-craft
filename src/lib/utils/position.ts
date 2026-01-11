@@ -36,6 +36,8 @@ export const isoPosToWorldPos = (x: number, y: number): Coordinates => {
   return { x: xPos, y: yPos };
 };
 
+// The globla position anchor point is set to top left but the visual position is centered,
+// and therefore we need to offset by half the window size
 export const getChunkByGlobalPosition = (x: number, y: number): { row: number; col: number } => {
   const pos = isoPosToWorldPos(x + window.innerWidth / 2, y + window.innerHeight / 2);
 

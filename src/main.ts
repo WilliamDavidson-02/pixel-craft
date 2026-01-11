@@ -20,7 +20,7 @@ import {
 } from "@/core/entities/player";
 import { state } from "@/core/state";
 import { LABELS } from "@/lib/config";
-import { renderDuebugItems, setDebugItem } from "@/lib/debug";
+import { renderDebugItems, setDebugItem } from "@/lib/debug";
 import { setRenderDistance } from "@/lib/utils/renderDistance";
 import { handleWindowResize } from "@/lib/utils/window";
 
@@ -70,7 +70,7 @@ const init = async (): Promise<void> => {
 
     setDebugItem("fps", Math.floor(ticker.FPS));
     setDebugItem("position", { x: player.x.toFixed(2), y: player.y.toFixed(2) });
-    renderDuebugItems();
+    renderDebugItems();
 
     Culler.shared.cull(world, view);
   });

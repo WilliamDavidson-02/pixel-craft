@@ -7,8 +7,8 @@ export const getIsoCollisionSides = (tile: ContainerChild, player: Sprite): Coli
   const cx = tile.x + TILE.WIDTH_HALF;
   const cy = tile.y + TILE.HEIGHT_HALF;
 
-  // Before this function is called we alredy know that we have collided with the tile
-  // This function is to determin on what side we colided
+  // Before this function is called we already know that we have collided with the tile
+  // This function is to determine on what side we collided
   return {
     "top-left": player.x + player.width < cx && player.y < cy,
     "bottom-left": player.x + player.width < cx && player.y > cy,

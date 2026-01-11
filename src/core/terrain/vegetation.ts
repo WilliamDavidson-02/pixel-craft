@@ -120,7 +120,7 @@ export const createVegetationSprite = (data: VegetationSpriteData): Sprite | nul
     height: textureData.height,
     x: x,
     y: y,
-    anchor: { x: 0.5, y: 1 }, // Trees root are always centered in assets there for we set the bottom center acnhor
+    anchor: { x: 0.5, y: 1 }, // Trees root are always centered in assets therefore we set the bottom center anchor
     label: `${labelPos.x}_${labelPos.y}`,
     zIndex: labelPos.y + TILE.HEIGHT_HALF,
   });

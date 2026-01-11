@@ -156,7 +156,7 @@ export const setChunksRenderQueue = (world: Container, groundLayer: Container) =
   const chunksToRender = getChunkKeysToAdd(keys, groundLayer);
   state.chunkState.renderList = new Set([...state.chunkState.renderList, ...chunksToRender]);
 
-  // Since removeing chunks is a much less resource intensive operation, we can handle all at once here
+  // Since removing chunks is a much less resource intensive operation, we can handle all at once here
   const visibleChunks = getVisibleChunks(keys);
   const groundChunksToRemove = getChunksToRemove(groundLayer, visibleChunks);
 

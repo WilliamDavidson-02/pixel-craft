@@ -67,7 +67,7 @@ export const createDebugItem = (name: string, value: DebugValue, index: number):
   return container;
 };
 
-export const renderDuebugItems = (): void => {
+export const renderDebugItems = (): void => {
   const items = Object.entries(debug)
     .filter(([_, value]) => value !== null)
     .map((item, index) => createDebugItem(...item, index));

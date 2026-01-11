@@ -41,7 +41,7 @@ const isWaterKey = (key: AnimationKey): key is WaterKey => {
 
 const getPlayerAnimationKey = (keys: Set<AllowedKeys>): AnimationKey => {
   const currentKey = state.player.animation.key;
-  // When player is created there is no keys that are active there for the early check
+  // When player is created there is no keys that are active therefore the early check
   if (keys.size === 0 && state.player.inWater) {
     return isWaterKey(currentKey) ? currentKey : `water-${currentKey}`;
   }
@@ -167,7 +167,7 @@ const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[]
     const cx = tile.x + TILE.WIDTH_HALF;
     const cy = tile.y + TILE.HEIGHT_HALF;
 
-    // The anchor is set to bottom left of the player therefor we dont have to add width or height
+    // The anchor is set to bottom left of the player therefore we dont have to add width or height
     const dx = Math.abs(player.x - cx) / TILE.WIDTH_HALF;
     const dy = Math.abs(player.y - cy) / TILE.HEIGHT_HALF;
 
