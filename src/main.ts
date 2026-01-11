@@ -1,7 +1,15 @@
-import { initDevtools } from "@pixi/devtools";
 import { Container, Culler, Rectangle } from "pixi.js";
 
 import { loadAllinitialAssets } from "@/core/assets";
+import {
+  handleMaxStoredChunks,
+  hasRenderQueue,
+  isChunksMemoryFull,
+  renderChunk,
+  renderChunksSync,
+  setChunksRenderQueue,
+  shouldRenderNewChunks,
+} from "@/core/chunks";
 import {
   createPlayer,
   isPlayerMoving,
@@ -11,15 +19,9 @@ import {
   removePlayerMovement,
 } from "@/core/entities/player";
 import { state } from "@/core/state";
-import {
-  chunkCreationList,
-  createChunk,
-  setInitalTiles,
-  setNewChunksToRender,
-  setRenderDistance,
-  updateVisibleChunks,
-} from "@/core/tiles";
-import { renderDuebugItems, setDebugItem } from "@/lib/debug";
+import { LABELS } from "@/lib/config";
+import { renderDebugItems, setDebugItem } from "@/lib/debug";
+import { setRenderDistance } from "@/lib/utils/renderDistance";
 import { handleWindowResize } from "@/lib/utils/window";
 
 let view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
@@ -31,7 +33,6 @@ const init = async (): Promise<void> => {
     background: "#4a80ff",
   });
   document.body.appendChild(state.app.canvas);
-  initDevtools({ app: state.app });
 
   setRenderDistance();
   await loadAllinitialAssets();
@@ -39,44 +40,43 @@ const init = async (): Promise<void> => {
   const world = new Container({
     isRenderGroup: true,
     eventMode: "static",
-    label: "world",
+    label: LABELS.APP.WORLD,
   });
-
   state.app.stage.addChild(world);
 
-  const surface = new Container({ label: "surface" });
-
-  const ground = new Container({ label: "ground" });
-  setInitalTiles(world, ground, surface);
-  world.addChild(ground, surface);
+  const groundLayer = new Container({ label: LABELS.APP.GROUND });
+  world.addChild(groundLayer);
+  renderChunksSync(world, groundLayer);
 
   const player = createPlayer();
   putPlayerInChunk(player);
   window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
   window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
 
-  setDebugItem("position", { x: world.x.toFixed(2), y: world.y.toFixed(2) });
-
   state.app.ticker.add((ticker) => {
     if (isPlayerMoving()) {
-      movePlayerPosition(player, world, ticker);
-      setNewChunksToRender(world);
+      movePlayerPosition(player, world, ticker.deltaTime);
 
-      if (chunkCreationList.length > 0) {
-        createChunk(chunkCreationList[0]);
+      if (shouldRenderNewChunks(player.x, player.y)) {
+        setChunksRenderQueue(world, groundLayer);
       }
 
-      updateVisibleChunks(world, ground, surface);
+      if (hasRenderQueue()) {
+        renderChunk(groundLayer);
+      } else if (isChunksMemoryFull()) {
+        handleMaxStoredChunks(world);
+      }
     }
 
     setDebugItem("fps", Math.floor(ticker.FPS));
-    renderDuebugItems();
+    setDebugItem("position", { x: player.x.toFixed(2), y: player.y.toFixed(2) });
+    renderDebugItems();
 
     Culler.shared.cull(world, view);
   });
 
   window.addEventListener("resize", () => {
-    handleWindowResize(world, ground, surface);
+    handleWindowResize(world, groundLayer);
     view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
   });
 };

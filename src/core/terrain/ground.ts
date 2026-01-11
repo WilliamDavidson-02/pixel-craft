@@ -2,7 +2,7 @@ import { Sprite } from "pixi.js";
 
 import { state } from "@/core/state";
 import { getWaterTextureFromPerlin, isTileWater } from "@/core/terrain/water";
-import { TILE_HEIGHT, TILE_WIDTH, TILE_WIDTH_HALF } from "@/core/tiles";
+import { TILE } from "@/lib/config";
 import { getPerlinAroundCell } from "@/lib/utils/perlinNoise";
 
 type GroundSpriteData = {
@@ -16,12 +16,12 @@ type GroundSpriteData = {
 export const createGroundSprite = (data: GroundSpriteData): Sprite | null => {
   const { xPosTile, yPosTile, perlin, row, col } = data;
 
-  const x = xPosTile - TILE_WIDTH_HALF;
+  const x = xPosTile - TILE.WIDTH_HALF;
   const y = yPosTile;
 
   const sprite = new Sprite({
-    width: TILE_WIDTH,
-    height: TILE_HEIGHT * 2, // Dubble the height since we have walls on some block but this does not effect the position only the texture
+    width: TILE.WIDTH,
+    height: TILE.HEIGHT * 2, // Dubble the height since we have walls on some block but this does not effect the position only the texture
     x: x,
     y: y,
     label: `${x}_${y}`, // Adding the positino to the label so we can get tha same tile on the surface as well

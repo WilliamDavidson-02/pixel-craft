@@ -2,13 +2,13 @@
 import { Noise } from "noisejs";
 import { type ContainerChild, Sprite, type Texture } from "pixi.js";
 
-import type { Coordinates } from "@/core/entities/player";
 import { state } from "@/core/state";
 import { isTileWater } from "@/core/terrain/water";
-import { isoPosToWorldPos, TILE_HEIGHT, TILE_HEIGHT_HALF, TILE_WIDTH_HALF } from "@/core/tiles";
+import { TILE } from "@/lib/config/tile";
 import { SEED } from "@/lib/utils/perlinNoise";
-
-import { type Chunk } from "../../types/tiles";
+import { isoPosToWorldPos } from "@/lib/utils/position";
+import { type Chunk } from "@/types/chunks";
+import type { Coordinates } from "@/types/player";
 
 type VegetationSpriteData = {
   xPosTile: number;
@@ -91,8 +91,8 @@ const getTextureFromPerlin = (perlin: number, x: number, y: number): Texture | n
 };
 
 export const convertVegetationPosToGround = (x: number, y: number): Coordinates => {
-  const newX = x - TILE_WIDTH_HALF;
-  const newY = y - TILE_HEIGHT * 0.75;
+  const newX = x - TILE.WIDTH_HALF;
+  const newY = y - TILE.HEIGHT * 0.75;
 
   return { x: newX, y: newY };
 };
@@ -103,7 +103,7 @@ export const createVegetationSprite = (data: VegetationSpriteData): Sprite | nul
   if (isTileWater(perlin[row][col])) return null;
 
   const x = xPosTile;
-  const y = yPosTile + TILE_HEIGHT * 0.75;
+  const y = yPosTile + TILE.HEIGHT * 0.75;
 
   const worldPos = isoPosToWorldPos(xPosTile, yPosTile);
 
@@ -120,9 +120,9 @@ export const createVegetationSprite = (data: VegetationSpriteData): Sprite | nul
     height: textureData.height,
     x: x,
     y: y,
-    anchor: { x: 0.5, y: 1 }, // Trees root are always centered in assets there for we set the bottom center acnhor
+    anchor: { x: 0.5, y: 1 }, // Trees root are always centered in assets therefore we set the bottom center anchor
     label: `${labelPos.x}_${labelPos.y}`,
-    zIndex: labelPos.y + TILE_HEIGHT_HALF,
+    zIndex: labelPos.y + TILE.HEIGHT_HALF,
   });
 
   return sprite;
@@ -132,5 +132,5 @@ export const getVegetationFromGround = (
   chunk: Chunk,
   label: string,
 ): ContainerChild | null | undefined => {
-  return chunk.surface?.getChildByLabel(label);
+  return chunk.object?.getChildByLabel(label);
 };

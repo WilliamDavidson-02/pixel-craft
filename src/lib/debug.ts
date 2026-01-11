@@ -1,9 +1,9 @@
 import { BitmapText, Container, Graphics } from "pixi.js";
 
 import { state } from "@/core/state";
+import { LABELS } from "@/lib/config/labels";
 
-const DEBUG_CONTAINER_LABEL = "debug-ui-container";
-const debugContainer = new Container({ label: DEBUG_CONTAINER_LABEL });
+const debugContainer = new Container({ label: LABELS.DEBUG_CONTAINER_LABEL });
 
 export type BaseDebugValue = string | number;
 export type DebugValue = BaseDebugValue | Record<string, BaseDebugValue> | null;
@@ -67,7 +67,7 @@ export const createDebugItem = (name: string, value: DebugValue, index: number):
   return container;
 };
 
-export const renderDuebugItems = (): void => {
+export const renderDebugItems = (): void => {
   const items = Object.entries(debug)
     .filter(([_, value]) => value !== null)
     .map((item, index) => createDebugItem(...item, index));

@@ -21,7 +21,10 @@ npm run dev
 ```
 
 ## Devtools
-Pixi.js has a very useful DevTools extension for debugging rendered containers and assets. This is already set up for this project, but make sure to install the [extension](https://chromewebstore.google.com/detail/pixijs-devtools/dlkffcaaoccbofklocbjcmppahjjboce).
+Pixi.js has a very useful DevTools extension for debugging rendered containers and assets. Install the [extension](https://chromewebstore.google.com/detail/pixijs-devtools/dlkffcaaoccbofklocbjcmppahjjboce) here.
+
+> [!NOTE]
+> Pixi dev tools opened may reduce rendering performance when rendering the open world.
 
 ## Map generation
 
