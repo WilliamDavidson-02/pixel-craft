@@ -20,7 +20,10 @@ export type AnimationKey = LandKey | WaterKey;
 
 type PlayerStateAnimation = {
   currentFrame: number;
+  frameLength: number;
   key: AnimationKey;
+  timer: number;
+  speed: number;
 };
 
 export type PlayerState = {

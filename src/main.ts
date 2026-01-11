@@ -14,7 +14,6 @@ import {
   createPlayer,
   isPlayerMoving,
   movePlayerPosition,
-  putPlayerInChunk,
   registerPlayerMovement,
   removePlayerMovement,
 } from "@/core/entities/player";
@@ -49,7 +48,7 @@ const init = async (): Promise<void> => {
   renderChunksSync(world, groundLayer);
 
   const player = createPlayer();
-  putPlayerInChunk(player);
+  world.addChild(player);
   window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
   window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
 

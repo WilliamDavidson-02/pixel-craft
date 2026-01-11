@@ -112,9 +112,16 @@ export const createPlayer = (): Sprite => {
   player.y = y;
   player.width = PLAYER.WIDTH;
   player.height = PLAYER.HEIGHT;
+  player.zIndex = x + y;
 
   state.player.animation.key = getPlayerAnimationKey(state.player.movementKeys);
   state.player.position = { x, y };
+
+  const { currentFrame, key } = state.player.animation;
+
+  if (state.assets.player) {
+    player.texture = state.assets.player.animations[key][currentFrame];
+  }
 
   return player;
 };
@@ -150,12 +157,19 @@ export const isPlayerStopping = () => {
   return state.player.movementKeys.size === 0 && state.player.animation.currentFrame !== 0;
 };
 
-export const setPlayerAnimation = (
-  key: AnimationKey | null = state.player.animation.key,
-  frame: number | null = state.player.animation.currentFrame,
-) => {
-  state.player.animation.currentFrame = frame ?? state.player.animation.currentFrame;
-  state.player.animation.key = key ?? state.player.animation.key;
+const handlePlayerAnimation = (player: Sprite) => {
+  const { timer, speed } = state.player.animation;
+  if (timer >= speed && state.player.movementKeys.size > 0) {
+    state.player.animation.timer = 0;
+    state.player.animation.currentFrame =
+      (state.player.animation.currentFrame + 1) % state.player.animation.frameLength;
+    state.player.animation.key = getPlayerAnimationKey(state.player.movementKeys);
+
+    if (state.assets.player) {
+      const { key, currentFrame } = state.player.animation;
+      player.texture = state.assets.player.animations[key][currentFrame];
+    }
+  }
 };
 
 const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[] => {
@@ -301,7 +315,6 @@ export const movePlayerTo = (x: number, y: number, world: Container, player: Spr
 
 export const movePlayerPosition = (player: Sprite, world: Container, deltaTime: number) => {
   // Put player in the correct chunk so zIndex will work on surface items
-  putPlayerInChunk(player);
   const allowedDirection = handlePlayerBounds(player);
   const distance = deltaTime * PLAYER.SPEED;
 
@@ -326,5 +339,8 @@ export const movePlayerPosition = (player: Sprite, world: Container, deltaTime: 
   }
 
   // To always be behind or infront of the right tree we have to adjust the zIndex depending on y axis
-  player.zIndex = player.y;
+  player.zIndex = Math.abs(player.x + player.y);
+
+  state.player.animation.timer += deltaTime / 60;
+  handlePlayerAnimation(player);
 };

@@ -15,7 +15,10 @@ export type State = {
 const initialPlayerState: PlayerState = {
   animation: {
     currentFrame: 0,
+    frameLength: 3,
     key: "down-center",
+    timer: 0,
+    speed: 0.1,
   },
   position: { x: 0, y: 0 },
   movementKeys: new Set([]),
