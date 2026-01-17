@@ -28,7 +28,6 @@ const init = async (): Promise<void> => {
   await state.app.init({
     resizeTo: window,
     antialias: false,
-    background: "#4a80ff",
   });
   document.body.appendChild(state.app.canvas);
 
