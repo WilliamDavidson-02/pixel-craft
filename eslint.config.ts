@@ -68,6 +68,8 @@ export default defineConfig([
       "@typescript-eslint/consistent-type-definitions": ["error", "type"],
       "@typescript-eslint/no-inferrable-types": "off",
 
+      /* --- SonarJS --- */
+      "sonarjs/no-commented-code": "off",
       "sonarjs/cognitive-complexity": ["error", 20],
       "sonarjs/todo-tag": "warn",
       "sonarjs/pseudo-random": "off",
