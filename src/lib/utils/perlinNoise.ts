@@ -68,3 +68,23 @@ export const getPerlinAroundCell = (xPos: number, yPos: number): number[][] => {
 
   return values;
 };
+
+/**
+ * Generates secondary noise for block type variation.
+ * Uses a different seed and higher frequency for smaller patch sizes.
+ * Returns a value normalized to 0-1 range.
+ */
+export const generateBlockTypeNoise = (x: number, y: number): number => {
+  const noise = new Noise(SEED + 1000); // Different seed for independent variation
+
+  // Higher frequency for smaller patches
+  const frequency = 0.08;
+
+  // Simple 2-octave noise for block type variation
+  let value = 0;
+  value += noise.perlin2(x * frequency, y * frequency) * 0.7;
+  value += noise.perlin2(x * frequency * 2, y * frequency * 2) * 0.3;
+
+  // Normalize from [-1, 1] to [0, 1]
+  return (value + 1) / 2;
+};

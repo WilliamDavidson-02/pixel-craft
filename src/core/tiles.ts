@@ -33,6 +33,14 @@ export const createTiles = (key: ChunkKey) => {
       TILE.HEIGHT_HALF,
     );
 
-    return createGroundSprite({ xPosTile, yPosTile, perlin, row, col });
+    return createGroundSprite({
+      xPosTile,
+      yPosTile,
+      perlin,
+      row,
+      col,
+      chunkCol: cellValue.col,
+      chunkRow: cellValue.row,
+    });
   }).flat();
 };

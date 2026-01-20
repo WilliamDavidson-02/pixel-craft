@@ -5,6 +5,7 @@ import {
   handleMaxStoredChunks,
   hasRenderQueue,
   isChunksMemoryFull,
+  regenerateAllChunks,
   renderChunk,
   setChunksRenderQueue,
   shouldRenderNewChunks,
@@ -19,6 +20,7 @@ import {
 import { state } from "@/core/state";
 import { LABELS } from "@/lib/config";
 import { renderDebugItems, setDebugItem } from "@/lib/debug";
+import { initDebugGui } from "@/lib/debug/gui";
 import { setRenderDistance } from "@/lib/utils/renderDistance";
 import { handleWindowResize } from "@/lib/utils/window";
 
@@ -44,6 +46,9 @@ const init = async (): Promise<void> => {
   const groundLayer = new Container({ label: LABELS.APP.GROUND });
   world.addChild(groundLayer);
   setChunksRenderQueue(world, groundLayer);
+
+  // Initialize debug GUI with terrain regeneration callback
+  initDebugGui(() => regenerateAllChunks(world, groundLayer));
 
   const player = createPlayer();
   world.addChild(player);

@@ -277,3 +277,26 @@ export const getWaterTextureFromPerlin = (perlin: number[][]): { water: Texture;
 export const isTileWater = (perlin: number): boolean => {
   return perlin >= TERRAIN_HEIGHT.WATER_THRESHOLD;
 };
+
+/**
+ * Checks if a ground tile is adjacent to water (shore detection).
+ * The center tile must be ground, and at least one neighbor must be water.
+ */
+export const isAdjacentToWater = (perlin: number[][]): boolean => {
+  // Center must be ground
+  if (perlin[1][1] >= TERRAIN_HEIGHT.WATER_THRESHOLD) {
+    return false;
+  }
+
+  // Check all 8 neighbors for water
+  for (let y = 0; y < 3; y++) {
+    for (let x = 0; x < 3; x++) {
+      if (x === 1 && y === 1) continue; // Skip center
+      if (perlin[y][x] >= TERRAIN_HEIGHT.WATER_THRESHOLD) {
+        return true; // Has water neighbor
+      }
+    }
+  }
+
+  return false;
+};
