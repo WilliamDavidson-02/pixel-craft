@@ -233,7 +233,10 @@ const waterPatterns: Record<string, number[][]> = {
   ],
 };
 
-export const PERLIN_GROUND_WATER_THRESHOLD = 0.15;
+import { TERRAIN_HEIGHT } from "@/lib/config";
+
+/** @deprecated Use TERRAIN_HEIGHT.WATER_THRESHOLD from @/lib/config instead */
+export const PERLIN_GROUND_WATER_THRESHOLD = TERRAIN_HEIGHT.WATER_THRESHOLD;
 
 export const matchesPattern = (perlin: number[][], pattern: number[][]): boolean => {
   for (let y = 0; y < 3; y++) {
@@ -245,10 +248,10 @@ export const matchesPattern = (perlin: number[][], pattern: number[][]): boolean
         continue;
       }
 
-      if (rule === 1 && value >= PERLIN_GROUND_WATER_THRESHOLD) {
+      if (rule === 1 && value >= TERRAIN_HEIGHT.WATER_THRESHOLD) {
         return false;
       } // must be ground
-      if (rule === -1 && value < PERLIN_GROUND_WATER_THRESHOLD) {
+      if (rule === -1 && value < TERRAIN_HEIGHT.WATER_THRESHOLD) {
         return false;
       } // must be water
     }
@@ -272,5 +275,5 @@ export const getWaterTextureFromPerlin = (perlin: number[][]): { water: Texture;
 };
 
 export const isTileWater = (perlin: number): boolean => {
-  return perlin >= PERLIN_GROUND_WATER_THRESHOLD;
+  return perlin >= TERRAIN_HEIGHT.WATER_THRESHOLD;
 };

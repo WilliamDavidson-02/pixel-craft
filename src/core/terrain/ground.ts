@@ -1,8 +1,8 @@
 import { Sprite } from "pixi.js";
 
 import { state } from "@/core/state";
-import { isTileWater } from "@/core/terrain/water";
 import { TILE } from "@/lib/config";
+import { getTerrainHeightLevel } from "@/lib/utils/position";
 
 type GroundSpriteData = {
   xPosTile: number;
@@ -12,7 +12,72 @@ type GroundSpriteData = {
   col: number;
 };
 
-export const createGroundSprite = (data: GroundSpriteData): Sprite | null => {
+/**
+ * Gets the height levels of adjacent tiles for cliff detection.
+ * Returns null if the adjacent tile is out of bounds.
+ */
+const getAdjacentHeightLevels = (
+  perlin: number[][],
+  row: number,
+  col: number,
+): { top: number | null; left: number | null } => {
+  // In isometric view, "behind" tiles are at row-1 and col-1
+  const topLevel = row > 0 ? getTerrainHeightLevel(perlin[row - 1][col]).level : null;
+  const leftLevel = col > 0 ? getTerrainHeightLevel(perlin[row][col - 1]).level : null;
+
+  return { top: topLevel, left: leftLevel };
+};
+
+/**
+ * Creates cliff filler sprites when there's a height gap > 1 between adjacent tiles.
+ * Fills the gap with dirt blocks to prevent visual holes.
+ */
+const createCliffFillers = (
+  x: number,
+  baseY: number,
+  currentLevel: number,
+  adjacentLevels: { top: number | null; left: number | null },
+  isWater: boolean,
+): Sprite[] => {
+  const fillers: Sprite[] = [];
+
+  if (!state.assets.blocks) return fillers;
+
+  // Check each adjacent tile for height gaps
+  const adjacentValues = [adjacentLevels.top, adjacentLevels.left];
+
+  for (const adjacentLevel of adjacentValues) {
+    if (adjacentLevel === null) continue;
+
+    const levelDiff = Math.abs(currentLevel - adjacentLevel);
+
+    // Only fill if there's a gap > 1 level
+    if (levelDiff > 1) {
+      // Determine the range of levels to fill
+      const minLevel = Math.min(currentLevel, adjacentLevel);
+      const maxLevel = Math.max(currentLevel, adjacentLevel);
+
+      // Fill intermediate levels with dirt blocks
+      for (let fillLevel = minLevel + 1; fillLevel < maxLevel; fillLevel++) {
+        const fillerSprite = new Sprite({
+          width: TILE.WIDTH,
+          height: TILE.HEIGHT * 2,
+          x: x,
+          y: isWater
+            ? baseY + (fillLevel + 1) * TILE.HEIGHT_HALF
+            : baseY - fillLevel * TILE.HEIGHT_HALF,
+          label: `filler_${x}_${fillLevel}`,
+        });
+        fillerSprite.texture = state.assets.blocks.animations["dirt"][0];
+        fillers.push(fillerSprite);
+      }
+    }
+  }
+
+  return fillers;
+};
+
+export const createGroundSprite = (data: GroundSpriteData): Sprite[] => {
   const { xPosTile, yPosTile, perlin, row, col } = data;
   const perlinValue = perlin[row][col];
 
@@ -27,38 +92,25 @@ export const createGroundSprite = (data: GroundSpriteData): Sprite | null => {
     label: `${x}_${y}`, // Adding the positino to the label so we can get tha same tile on the surface as well
   });
 
-  if (perlinValue < -0.15 && perlinValue >= -0.35) {
-    sprite.y -= TILE.HEIGHT_HALF;
-    sprite.tint = 0x7fbf7f; // Darker green for lower ground
-  } else if (perlinValue < -0.35 && perlinValue >= -0.55) {
-    sprite.y -= TILE.HEIGHT;
-    sprite.tint = 0x3f7f3f; // Even darker green for lowest ground
-  } else if (perlinValue < -0.55) {
-    sprite.y -= TILE.HEIGHT + TILE.HEIGHT_HALF;
-    sprite.tint = 0x1f3f1f; // Very dark green for the lowest ground
-  }
+  // Get terrain height level using dynamic formula
+  const { level, isWater } = getTerrainHeightLevel(perlinValue);
 
   if (state.assets.blocks) {
-    sprite.texture = state.assets.blocks.animations["grass"][0];
-
-    if (isTileWater(perlin[row][col])) {
+    if (isWater) {
+      // Water/underwater terrain: use dirt texture and lower the tile
       sprite.texture = state.assets.blocks.animations["dirt"][0];
-      sprite.y += TILE.HEIGHT_HALF;
-
-      if (perlinValue > 0.25 && perlinValue <= 0.35) {
-        sprite.y += TILE.HEIGHT_HALF;
-        sprite.tint = 0xa67c52; // Brown for shallow water
-      } else if (perlinValue > 0.35 && perlinValue <= 0.45) {
-        console.log(perlin[row][col]);
-        sprite.y += TILE.HEIGHT;
-        sprite.tint = 0x6b4f2a; // Darker brown for deeper water
-      } else if (perlinValue > 0.45) {
-        console.log(perlin[row][col]);
-        sprite.y += TILE.HEIGHT + TILE.HEIGHT_HALF;
-        sprite.tint = 0x6b4f2a; // Darker brown for deeper water
-      }
+      // +1 accounts for base water offset, level adds additional depth
+      sprite.y += (level + 1) * TILE.HEIGHT_HALF;
+    } else {
+      // Ground terrain: use grass texture and raise the tile
+      sprite.texture = state.assets.blocks.animations["grass"][0];
+      sprite.y -= level * TILE.HEIGHT_HALF;
     }
   }
 
-  return sprite;
+  // Get adjacent tile heights and create cliff fillers if needed
+  const adjacentLevels = getAdjacentHeightLevels(perlin, row, col);
+  const fillers = createCliffFillers(x, y, level, adjacentLevels, isWater);
+
+  return [sprite, ...fillers];
 };

@@ -34,5 +34,5 @@ export const createTiles = (key: ChunkKey) => {
     );
 
     return createGroundSprite({ xPosTile, yPosTile, perlin, row, col });
-  }).filter((tile) => !!tile);
+  }).flat();
 };
