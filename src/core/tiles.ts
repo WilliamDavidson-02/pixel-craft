@@ -42,5 +42,5 @@ export const createTiles = (key: ChunkKey) => {
       chunkCol: cellValue.col,
       chunkRow: cellValue.row,
     });
-  }).flat();
+  });
 };

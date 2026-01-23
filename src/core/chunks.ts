@@ -116,22 +116,6 @@ export const renderChunksSync = (world: Container, groundLayer: Container) => {
   }
 };
 
-/**
- * Clears all stored chunks and triggers re-render of visible chunks.
- * Used by debug GUI when threshold values change.
- */
-export const regenerateAllChunks = (world: Container, groundLayer: Container) => {
-  // Clear all stored chunks
-  state.chunkState.chunks.clear();
-  state.chunkState.renderList.clear();
-
-  // Remove all children from ground layer
-  groundLayer.removeChildren();
-
-  // Re-render visible chunks
-  renderChunksSync(world, groundLayer);
-};
-
 // This rendering method should only be used for chunk visibility updates
 // We only want to handle one chunk at a time one from render list and one from the remove list (if any)
 export const renderChunk = (groundLayer: Container) => {
@@ -161,6 +145,17 @@ export const renderChunk = (groundLayer: Container) => {
 
 export const hasRenderQueue = () => {
   return state.chunkState.renderList.size > 0;
+};
+
+export const setAllChunksRenderQueue = (world: Container, groundLayer: Container) => {
+  // Inverting the world pos since we move the world the other way to simulate movement
+  const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
+  const keys = getVisibleChunkKeys(row, col);
+
+  state.chunkState.chunks.clear();
+  state.chunkState.renderList = new Set(keys);
+
+  groundLayer.removeChildren();
 };
 
 export const setChunksRenderQueue = (world: Container, groundLayer: Container) => {

@@ -5,8 +5,8 @@ import {
   handleMaxStoredChunks,
   hasRenderQueue,
   isChunksMemoryFull,
-  regenerateAllChunks,
   renderChunk,
+  setAllChunksRenderQueue,
   setChunksRenderQueue,
   shouldRenderNewChunks,
 } from "@/core/chunks";
@@ -47,9 +47,6 @@ const init = async (): Promise<void> => {
   world.addChild(groundLayer);
   setChunksRenderQueue(world, groundLayer);
 
-  // Initialize debug GUI with terrain regeneration callback
-  initDebugGui(() => regenerateAllChunks(world, groundLayer));
-
   const player = createPlayer();
   world.addChild(player);
   window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
@@ -78,6 +75,8 @@ const init = async (): Promise<void> => {
 
     Culler.shared.cull(world, view);
   });
+
+  initDebugGui(() => setAllChunksRenderQueue(world, groundLayer));
 
   window.addEventListener("resize", () => {
     handleWindowResize(world, groundLayer);
