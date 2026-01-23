@@ -1,13 +1,16 @@
 // @ts-expect-error - This is the way to import noise
 import { Noise } from "noisejs";
 
+import { state } from "@/core/state";
 import { CHUNK } from "@/lib/config";
 import { isoPosToWorldPos } from "@/lib/utils/position";
 
-export const SEED = 47208;
+export const setPerlinSeed = (newSeed: number) => {
+  state.seed = newSeed;
+};
 
 export const generatePerlinNoise = (x: number, y: number): number => {
-  const noise = new Noise(SEED);
+  const noise = new Noise(state.seed);
   // Domain warping for realistic coastlines
   const scale = 80;
   let frequency = 0.005;
@@ -75,7 +78,7 @@ export const getPerlinAroundCell = (xPos: number, yPos: number): number[][] => {
  * Returns a value normalized to 0-1 range.
  */
 export const generateBlockTypeNoise = (x: number, y: number): number => {
-  const noise = new Noise(SEED + 1000); // Different seed for independent variation
+  const noise = new Noise(state.seed + 1000); // Different seed for independent variation
 
   // Higher frequency for smaller patches
   const frequency = 0.08;

@@ -1,6 +1,8 @@
 import GUI from "lil-gui";
 
+import { state } from "@/core/state";
 import { BLOCK_TYPE, TERRAIN_HEIGHT } from "@/lib/config";
+import { setPerlinSeed } from "@/lib/utils/perlinNoise";
 
 const gui = new GUI({ title: "Terrain Debug" });
 let regenerateCallback: (() => void) | null = null;
@@ -13,6 +15,8 @@ const updateWaterThreshold = (value: number) => {
 
 export const initDebugGui = (onRegenerate: () => void) => {
   regenerateCallback = onRegenerate;
+
+  gui.add({ seed: state.seed }, "seed", 0, 100000, 1).name("Seed").onChange(setPerlinSeed);
 
   const thresholdFolder = gui.addFolder("Water Threshold");
   thresholdFolder

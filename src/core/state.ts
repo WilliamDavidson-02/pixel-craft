@@ -10,6 +10,7 @@ export type State = {
   assets: ASSETS;
   chunkState: ChunkState;
   player: PlayerState;
+  seed: number;
 };
 
 const initialPlayerState: PlayerState = {
@@ -35,4 +36,5 @@ export const state: State = {
   assets: {},
   chunkState: initialChunkState,
   player: initialPlayerState,
+  seed: 47208,
 };

@@ -5,7 +5,6 @@ import { type ContainerChild, Sprite, type Texture } from "pixi.js";
 import { state } from "@/core/state";
 import { isTileWater } from "@/core/terrain/water";
 import { TILE } from "@/lib/config/tile";
-import { SEED } from "@/lib/utils/perlinNoise";
 import { isoPosToWorldPos } from "@/lib/utils/position";
 import { type Chunk } from "@/types/chunks";
 import type { Coordinates } from "@/types/player";
@@ -48,7 +47,7 @@ const deterministicHash = (x: number, y: number, seed: number): number => {
 };
 
 export const generateVegetationNoise = (x: number, y: number): number => {
-  const noise = new Noise(SEED);
+  const noise = new Noise(state.seed);
 
   // // Domain warping for realistic coastlines
   const scale = 80;
@@ -74,7 +73,7 @@ export const generateVegetationNoise = (x: number, y: number): number => {
 
 const getTextureFromPerlin = (perlin: number, x: number, y: number): Texture | null => {
   let textureKey = "";
-  const shouldRender = deterministicHash(x, y, SEED);
+  const shouldRender = deterministicHash(x, y, state.seed);
 
   for (const [key, value] of Object.entries(VEGETATION_NOISE)) {
     const isThree = key === "oak-tree.png" && perlin <= value;
