@@ -26,8 +26,8 @@ export const initDebugGui = (onRegenerate: () => void) => {
 
   const sandFolder = gui.addFolder("Sand Distribution");
   sandFolder.add(BLOCK_TYPE, "SAND_SHORE_THRESHOLD", 0, 1, 0.05).name("Shore");
-  sandFolder.add(BLOCK_TYPE, "SAND_INLAND_SPREAD", 0, 1, 0.05).name("Inland Spread");
   sandFolder.add(BLOCK_TYPE, "SAND_UNDERWATER_THRESHOLD", 0, 1, 0.05).name("Underwater");
+  sandFolder.add(BLOCK_TYPE, "SAND_MAX_GROUND_LEVEL", 0, 3, 1).name("Max Ground Level");
 
   const stoneFolder = gui.addFolder("Stone Distribution");
   stoneFolder.add(BLOCK_TYPE, "STONE_GROUND_THRESHOLD", 0, 0.5, 0.05).name("Ground");

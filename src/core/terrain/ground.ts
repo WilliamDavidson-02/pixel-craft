@@ -50,13 +50,11 @@ const getBlockType = (
 
   // Shore tiles: sand with noise based variation
   // Also allow sand to creep inland based on noise and spread threshold
-  if (isShore && blockNoise > BLOCK_TYPE.SAND_SHORE_THRESHOLD) {
-    return "sand";
-  }
-
-  if (blockNoise > BLOCK_TYPE.SAND_INLAND_SPREAD) {
-    // Inland sand patches (rare, only when noise is very high)
-    // This creates occasional sand patches away from water
+  if (
+    isShore &&
+    blockNoise > BLOCK_TYPE.SAND_SHORE_THRESHOLD &&
+    level <= BLOCK_TYPE.SAND_MAX_GROUND_LEVEL
+  ) {
     return "sand";
   }
 
