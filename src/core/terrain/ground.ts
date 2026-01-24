@@ -1,64 +1,51 @@
-import { Sprite } from "pixi.js";
+import { ColorMatrixFilter, Sprite } from "pixi.js";
 
 import { state } from "@/core/state";
 import { isAdjacentToWater } from "@/core/terrain/water";
-import { BLOCK_TYPE, CHUNK, TILE } from "@/lib/config";
+import { CHUNK, TILE } from "@/lib/config";
+import { getBlockType } from "@/lib/utils/block";
 import { generateBlockTypeNoise, getPerlinAroundCell } from "@/lib/utils/perlinNoise";
 import { getTerrainHeightLevel } from "@/lib/utils/position";
+import type { GroundSpriteData } from "@/types/ground";
 
-type GroundSpriteData = {
-  xPosTile: number;
-  yPosTile: number;
-  perlin: number[][];
-  row: number;
-  col: number;
-  chunkCol: number;
-  chunkRow: number;
-};
+const shadowFilterCahche: Record<string, ColorMatrixFilter> = {};
 
-type BlockType = "grass" | "dirt" | "sand" | "stone";
+const getTerrainShadowFilter = (level: number, isWater: boolean, x: number, y: number) => {
+  const perlin = getPerlinAroundCell(x, y, 1);
+  const frontTiles = [
+    perlin[1][2], // Rigtht
+    perlin[2][1], // Bottom
+    perlin[2][2], // Bottom-right
+  ] as const;
 
-/**
- * Determines the block type based on terrain factors
- */
-const getBlockType = (
-  level: number,
-  isWater: boolean,
-  isShore: boolean,
-  blockNoise: number,
-): BlockType => {
-  if (isWater) {
-    // Stone uses inverted threshold (lower noise = stone) to separate from sand
-    if (blockNoise < BLOCK_TYPE.STONE_UNDERWATER_THRESHOLD) {
-      return "stone";
+  const heigherTileCount = frontTiles.reduce((count, perlinValue) => {
+    const adjacentLevel = getTerrainHeightLevel(perlinValue).level;
+
+    if (isWater) {
+      count += adjacentLevel < level ? 1 : 0;
+    } else {
+      count += adjacentLevel > level ? 1 : 0;
     }
 
-    if (blockNoise > BLOCK_TYPE.SAND_UNDERWATER_THRESHOLD) {
-      return "sand";
-    }
+    return count;
+  }, 0);
 
-    return "dirt";
+  if (heigherTileCount === 0) {
+    return null;
   }
 
-  // High elevation: can have stone (inverted threshold)
-  if (
-    level >= BLOCK_TYPE.STONE_MIN_GROUND_LEVEL &&
-    blockNoise < BLOCK_TYPE.STONE_GROUND_THRESHOLD
-  ) {
-    return "stone";
+  const shadowCountMap = [1, 0.95, 0.9, 0.85];
+  const brightness = shadowCountMap[heigherTileCount];
+
+  const cacheKey = `${heigherTileCount}_${brightness}`;
+  if (shadowFilterCahche[cacheKey]) {
+    return shadowFilterCahche[cacheKey]!;
   }
 
-  // Shore tiles: sand with noise based variation
-  // Also allow sand to creep inland based on noise and spread threshold
-  if (
-    isShore &&
-    blockNoise > BLOCK_TYPE.SAND_SHORE_THRESHOLD &&
-    level <= BLOCK_TYPE.SAND_MAX_GROUND_LEVEL
-  ) {
-    return "sand";
-  }
-
-  return "grass";
+  const shadowFilter = new ColorMatrixFilter();
+  shadowFilter.brightness(brightness, false);
+  shadowFilterCahche[cacheKey] = shadowFilter;
+  return shadowFilter;
 };
 
 export const createGroundSprite = (data: GroundSpriteData): Sprite => {
@@ -81,6 +68,8 @@ export const createGroundSprite = (data: GroundSpriteData): Sprite => {
   const perlinAround = getPerlinAroundCell(row, col);
   const isShore = isAdjacentToWater(perlinAround);
 
+  const filter = getTerrainShadowFilter(level, isWater, xPosTile, yPosTile);
+
   // Get secondary noise for block type variation
   const worldX = chunkCol * CHUNK.SIZE + col;
   const worldY = chunkRow * CHUNK.SIZE + row;
@@ -96,6 +85,10 @@ export const createGroundSprite = (data: GroundSpriteData): Sprite => {
       sprite.y += (level + 1) * TILE.HEIGHT_HALF;
     } else {
       sprite.y -= level * TILE.HEIGHT_HALF;
+    }
+
+    if (filter) {
+      sprite.filters = [filter];
     }
   }
 

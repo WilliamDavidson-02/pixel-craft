@@ -4,7 +4,7 @@ import { state } from "@/core/state";
 import { BLOCK_TYPE, TERRAIN_HEIGHT } from "@/lib/config";
 import { setPerlinSeed } from "@/lib/utils/perlinNoise";
 
-const gui = new GUI({ title: "Terrain Debug" });
+const gui = new GUI({ title: "Terrain Debug", closeFolders: true });
 let regenerateCallback: (() => void) | null = null;
 
 const updateWaterThreshold = (value: number) => {

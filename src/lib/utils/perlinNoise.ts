@@ -105,8 +105,7 @@ export const getPerlinNoise = (col: number, row: number): number[][] => {
   return values;
 };
 
-export const getPerlinAroundCell = (xPos: number, yPos: number): number[][] => {
-  const area = 1;
+export const getPerlinAroundCell = (xPos: number, yPos: number, area = 1): number[][] => {
   const values: number[][] = [];
 
   const worldPos = isoPosToWorldPos(xPos, yPos);
