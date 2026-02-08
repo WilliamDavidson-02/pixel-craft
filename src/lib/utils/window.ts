@@ -8,7 +8,7 @@ let isResizing: NodeJS.Timeout | null = null;
 let prevWindowWidth = window.innerWidth;
 let prevWindowHeight = window.innerHeight;
 
-export const handleWindowResize = (world: Container, groundLayer: Container): void => {
+export const handleWindowResize = (world: Container, staticLayer: Container): void => {
   const widthDiff = window.innerWidth - prevWindowWidth;
   const heightDiff = window.innerHeight - prevWindowHeight;
 
@@ -28,5 +28,5 @@ export const handleWindowResize = (world: Container, groundLayer: Container): vo
   // If the viewport is resized beyond what the staged renderer covers, we must update
   // the visible chunks. This also ensures chunks are removed when resizing to a much
   // smaller window size.
-  isResizing = setTimeout(() => setChunksRenderQueue(world, groundLayer), 200);
+  isResizing = setTimeout(() => setChunksRenderQueue(world, staticLayer), 200);
 };

@@ -1,9 +1,11 @@
+import type { Sprite } from "pixi.js";
+
 import { getCellFromKey } from "@/core/chunks";
 import { createGroundSprite } from "@/core/terrain/ground";
 import { CHUNK, TILE } from "@/lib/config";
 import { getPerlinNoise } from "@/lib/utils/perlinNoise";
 import { getIsometricTilePositions } from "@/lib/utils/position";
-import type { ChunkKey } from "@/types/chunks";
+import type { ChunkKey, Layer } from "@/types/chunks";
 import { type TileCallback } from "@/types/tiles";
 
 export const loopTiles = <T>(width: number, height: number, callback: TileCallback<T>): T[] => {
@@ -18,11 +20,13 @@ export const loopTiles = <T>(width: number, height: number, callback: TileCallba
   return results;
 };
 
-export const createTiles = (key: ChunkKey) => {
+export const createTiles = (key: ChunkKey): Record<Layer, Sprite[]> => {
   const cellValue = getCellFromKey(key);
   const perlin = getPerlinNoise(cellValue.col, cellValue.row);
 
-  return loopTiles(CHUNK.SIZE, CHUNK.SIZE, (row, col) => {
+  const tiles: Record<Layer, Sprite[]> = { static: [], stack: [] };
+
+  loopTiles(CHUNK.SIZE, CHUNK.SIZE, (row, col) => {
     const currentRow = cellValue.row * CHUNK.SIZE + row;
     const currentCol = cellValue.col * CHUNK.SIZE + col;
 
@@ -33,7 +37,7 @@ export const createTiles = (key: ChunkKey) => {
       TILE.HEIGHT_HALF,
     );
 
-    return createGroundSprite({
+    const { sprite, layer } = createGroundSprite({
       xPosTile,
       yPosTile,
       perlin,
@@ -42,5 +46,9 @@ export const createTiles = (key: ChunkKey) => {
       chunkCol: cellValue.col,
       chunkRow: cellValue.row,
     });
+
+    tiles[layer].push(sprite);
   });
+
+  return tiles;
 };

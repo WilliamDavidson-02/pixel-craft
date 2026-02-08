@@ -6,6 +6,7 @@ import { CHUNK, TILE } from "@/lib/config";
 import { getBlockType } from "@/lib/utils/block";
 import { generateBlockTypeNoise, getPerlinAroundCell } from "@/lib/utils/perlinNoise";
 import { getTerrainHeightLevel } from "@/lib/utils/position";
+import type { Layer } from "@/types/chunks";
 import type { GroundSpriteData } from "@/types/ground";
 
 const shadowFilterCahche: Record<string, ColorMatrixFilter> = {};
@@ -48,7 +49,7 @@ const getTerrainShadowFilter = (level: number, isWater: boolean, x: number, y: n
   return shadowFilter;
 };
 
-export const createGroundSprite = (data: GroundSpriteData): Sprite => {
+export const createGroundSprite = (data: GroundSpriteData): { sprite: Sprite; layer: Layer } => {
   const { xPosTile, yPosTile, perlin, row, col, chunkCol, chunkRow } = data;
   const perlinValue = perlin[row][col];
 
@@ -57,7 +58,7 @@ export const createGroundSprite = (data: GroundSpriteData): Sprite => {
 
   const sprite = new Sprite({
     width: TILE.WIDTH,
-    height: TILE.HEIGHT * 2, // Double the height since we have walls on some blocks
+    height: TILE.HEIGHT + TILE.HEIGHT_HALF,
     x: x,
     y: y,
     label: `${x}_${y}`,
@@ -92,5 +93,12 @@ export const createGroundSprite = (data: GroundSpriteData): Sprite => {
     }
   }
 
-  return sprite;
+  const isStackLayer = !isWater && level > 0;
+
+  if (isStackLayer) {
+    sprite.cullable = true;
+    sprite.zIndex = y + TILE.HEIGHT + TILE.HEIGHT_HALF;
+  }
+
+  return { sprite, layer: isStackLayer ? "stack" : "static" };
 };

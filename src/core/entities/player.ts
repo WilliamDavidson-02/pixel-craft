@@ -1,12 +1,6 @@
 import { type Container, type ContainerChild, Sprite } from "pixi.js";
 
-import {
-  getChunk,
-  getChunkByKey,
-  getVisibleChunkKeys,
-  getVisibleChunks,
-  isChunkKey,
-} from "@/core/chunks";
+import { getVisibleChunkKeys, getVisibleChunks } from "@/core/chunks";
 import { state } from "@/core/state";
 import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
 import { LABELS, PLAYER, TILE } from "@/lib/config";
@@ -173,7 +167,7 @@ const handlePlayerAnimation = (player: Sprite) => {
 };
 
 const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[] => {
-  const ground = chunk.ground?.children ?? [];
+  const ground = chunk?.children ?? [];
   const tiles: ContainerChild[] = [];
 
   // We only want to check if the bottom of the player is in a tile since that is where the feet are
@@ -213,27 +207,6 @@ const isPlayerBehindItem = (item: ContainerChild, groundTile: ContainerChild, pl
   return isAboveGroundTile && (isRight || isLeft) && (isTop || isBottom);
 };
 
-export const putPlayerInChunk = (player: Sprite) => {
-  const { row, col } = getChunkByGlobalPosition(player.x, player.y);
-
-  const newChunk = getChunk(row, col);
-  const oldChunk = getChunkByKey(state.player.chunkKey);
-  if (!newChunk || !newChunk.object) return;
-  const newKey = newChunk.object.label;
-
-  if (newKey === oldChunk?.object?.label) return;
-
-  if (oldChunk?.object) {
-    oldChunk.object.removeChild(player);
-  }
-
-  newChunk.object?.addChild(player);
-
-  if (isChunkKey(newKey)) {
-    state.player.chunkKey = newKey;
-  }
-};
-
 // eslint-disable-next-line sonarjs/cognitive-complexity
 const handlePlayerBounds = (player: Sprite): AllowedKeys[] => {
   let allowedDirection = [...allowedKeys];
@@ -247,12 +220,12 @@ const handlePlayerBounds = (player: Sprite): AllowedKeys[] => {
   // Including the chunks around the chunk that the player is in,
   // since a object item can have a part of it covering in to a differnt chunk
   for (const [, chunk] of chunks) {
-    if (!chunk.ground) {
+    if (!chunk) {
       continue;
     }
 
     // Moving backwords since the actual first index is the furthest away visualy
-    const ground = chunk.ground.children;
+    const ground = chunk.children;
     for (let i = ground.length - 1; i >= 0; i--) {
       const tile = ground[i];
       const currentVegetation = getVegetationFromGround(chunk, tile.label);
@@ -339,7 +312,7 @@ export const movePlayerPosition = (player: Sprite, world: Container, deltaTime: 
   }
 
   // To always be behind or infront of the right tree we have to adjust the zIndex depending on y axis
-  player.zIndex = Math.abs(player.x + player.y);
+  player.zIndex = player.y + player.height; // May ahve to discount the level when we eventually add player elevation change
 
   state.player.animation.timer += deltaTime / 60;
   handlePlayerAnimation(player);

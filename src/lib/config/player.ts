@@ -1,7 +1,7 @@
 const WIDTH = 32;
 const HEIGHT = 64;
 
-const DEFAULT_SPEED = 8;
+const DEFAULT_SPEED = 4;
 const SPEED = DEFAULT_SPEED;
 
 export const PLAYER = {
