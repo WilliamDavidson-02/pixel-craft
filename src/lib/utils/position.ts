@@ -1,5 +1,6 @@
 import type { Container } from "pixi.js";
 
+import { state } from "@/core/state";
 import { CHUNK, TERRAIN_HEIGHT, TILE } from "@/lib/config";
 import { setDebugItem } from "@/lib/debug";
 import type { Coordinates } from "@/types/player";
@@ -63,6 +64,7 @@ export const getGlobalPositionFromNoneStagedTile = (
   const globalParent = parent.getGlobalPosition();
 
   return {
+    ...state.player.position,
     x: x + globalParent.x,
     y: y + globalParent.y,
   };
@@ -72,7 +74,7 @@ export const isoPosToWorldPos = (x: number, y: number): Coordinates => {
   const xPos = Math.floor((x / TILE.WIDTH_HALF + y / TILE.HEIGHT_HALF) / 2);
   const yPos = Math.floor((y / TILE.HEIGHT_HALF - x / TILE.WIDTH_HALF) / 2);
 
-  return { x: xPos, y: yPos };
+  return { ...state.player.position, x: xPos, y: yPos };
 };
 
 // The globla position anchor point is set to top left but the visual position is centered,
