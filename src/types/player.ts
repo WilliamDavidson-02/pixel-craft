@@ -1,6 +1,8 @@
 import type { ChunkKey } from "./chunks";
 
-export type Coordinates = { x: number; y: number; level: number };
+export type Coordinates = { x: number; y: number };
+
+export type PlayerPosition = Coordinates & { level: number };
 
 export const allowedKeys = ["w", "a", "s", "d"] as const;
 export type AllowedKeys = (typeof allowedKeys)[number];
@@ -28,7 +30,7 @@ type PlayerStateAnimation = {
 
 export type PlayerState = {
   animation: PlayerStateAnimation;
-  position: Coordinates;
+  position: PlayerPosition;
   movementKeys: Set<AllowedKeys>;
   chunkKey?: ChunkKey;
   inWater: boolean;

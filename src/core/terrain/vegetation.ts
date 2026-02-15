@@ -131,5 +131,5 @@ export const getVegetationFromGround = (
   chunk: Chunk,
   label: string,
 ): ContainerChild | null | undefined => {
-  return chunk.object?.getChildByLabel(label);
+  return chunk?.getChildByLabel(label);
 };
