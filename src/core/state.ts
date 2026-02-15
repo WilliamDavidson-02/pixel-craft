@@ -21,7 +21,7 @@ const initialPlayerState: PlayerState = {
     timer: 0,
     speed: 0.1,
   },
-  position: { x: 0, y: 0 },
+  position: { x: 0, y: 0, level: 0 },
   movementKeys: new Set([]),
   inWater: false,
 };

@@ -1,6 +1,6 @@
 import type { ChunkKey } from "./chunks";
 
-export type Coordinates = { x: number; y: number };
+export type Coordinates = { x: number; y: number; level: number };
 
 export const allowedKeys = ["w", "a", "s", "d"] as const;
 export type AllowedKeys = (typeof allowedKeys)[number];
