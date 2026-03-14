@@ -82,34 +82,32 @@ const createEmptyChunk = (key: ChunkKey): Chunk => {
     label: key,
     zIndex,
     cullable: true,
+    isRenderGroup: true,
   };
 
-  return {
-    ground: new Container(containerOptions),
-    object: new Container(containerOptions),
-  };
+  return new Container(containerOptions);
 };
 
 // This rendering method should only be used on initial render
-export const renderChunksSync = (world: Container, groundLayer: Container) => {
+export const renderChunksSync = (world: Container, staticLayer: Container) => {
   // Inverting the world pos since we move the world the other way to simulate movement
   const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
   const keys = getVisibleChunkKeys(row, col);
 
-  if (groundLayer.children.length > 0) {
-    groundLayer.removeChildren();
+  if (staticLayer.children.length > 0) {
+    staticLayer.removeChildren();
   }
 
   for (const key of keys) {
     const chunk = createEmptyChunk(key);
     const tiles = createTiles(key);
 
-    if (chunk.ground && tiles.length > 0) {
-      chunk.ground.addChild(...tiles);
+    if (chunk && tiles.static.length > 0) {
+      chunk.addChild(...tiles.static);
     }
 
-    if (chunk.ground) {
-      groundLayer.addChild(chunk.ground);
+    if (chunk) {
+      staticLayer.addChild(chunk);
     }
 
     state.chunkState.chunks.set(key, chunk);
@@ -118,7 +116,7 @@ export const renderChunksSync = (world: Container, groundLayer: Container) => {
 
 // This rendering method should only be used for chunk visibility updates
 // We only want to handle one chunk at a time one from render list and one from the remove list (if any)
-export const renderChunk = (groundLayer: Container) => {
+export const renderChunk = (staticLayer: Container, stackLayer: Container) => {
   const { renderList, chunks } = state.chunkState;
 
   const renderKey = renderList.values().next().value;
@@ -130,13 +128,17 @@ export const renderChunk = (groundLayer: Container) => {
     chunk = createEmptyChunk(renderKey);
     const tiles = createTiles(renderKey);
 
-    if (chunk.ground && tiles.length > 0) {
-      chunk.ground.addChild(...tiles);
+    if (chunk && tiles.static.length > 0) {
+      chunk.addChild(...tiles.static);
+    }
+
+    if (tiles.stack.length > 0) {
+      stackLayer.addChild(...tiles.stack);
     }
   }
 
-  if (chunk.ground) {
-    groundLayer.addChild(chunk.ground);
+  if (chunk) {
+    staticLayer.addChild(chunk);
   }
 
   state.chunkState.renderList.delete(renderKey);
@@ -147,21 +149,32 @@ export const hasRenderQueue = () => {
   return state.chunkState.renderList.size > 0;
 };
 
-export const setChunksRenderQueue = (world: Container, groundLayer: Container) => {
+export const setAllChunksRenderQueue = (world: Container, staticLayer: Container) => {
+  // Inverting the world pos since we move the world the other way to simulate movement
+  const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
+  const keys = getVisibleChunkKeys(row, col);
+
+  state.chunkState.chunks.clear();
+  state.chunkState.renderList = new Set(keys);
+
+  staticLayer.removeChildren();
+};
+
+export const setChunksRenderQueue = (world: Container, staticLayer: Container) => {
   // Inverting the world pos since we move the world the other way to simulate movement
   const { row, col } = getChunkByGlobalPosition(-world.x, -world.y);
   const keys = getVisibleChunkKeys(row, col);
 
   // New chunks to render include chunks that are not in the rendered layer but are stored in state or need to be created
-  const chunksToRender = getChunkKeysToAdd(keys, groundLayer);
+  const chunksToRender = getChunkKeysToAdd(keys, staticLayer);
   state.chunkState.renderList = new Set([...state.chunkState.renderList, ...chunksToRender]);
 
   // Since removing chunks is a much less resource intensive operation, we can handle all at once here
   const visibleChunks = getVisibleChunks(keys);
-  const groundChunksToRemove = getChunksToRemove(groundLayer, visibleChunks);
+  const staticChunksToRemove = getChunksToRemove(staticLayer, visibleChunks);
 
-  if (groundChunksToRemove.length > 0) {
-    groundLayer.removeChild(...groundChunksToRemove);
+  if (staticChunksToRemove.length > 0) {
+    staticLayer.removeChild(...staticChunksToRemove);
   }
 };
 

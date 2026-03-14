@@ -1,8 +1,8 @@
 export const LABELS = {
   APP: {
     WORLD: "world",
-    GROUND: "ground",
-    OBJECT: "object",
+    STATIC: "static",
+    STACK: "stack",
     PLAYER: "player",
   },
   DEBUG_CONTAINER_LABEL: "debug-ui-container",

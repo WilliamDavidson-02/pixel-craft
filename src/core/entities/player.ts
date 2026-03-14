@@ -1,12 +1,6 @@
 import { type Container, type ContainerChild, Sprite } from "pixi.js";
 
-import {
-  getChunk,
-  getChunkByKey,
-  getVisibleChunkKeys,
-  getVisibleChunks,
-  isChunkKey,
-} from "@/core/chunks";
+import { getVisibleChunkKeys, getVisibleChunks } from "@/core/chunks";
 import { state } from "@/core/state";
 import { getVegetationFromGround, hasVegetationCollisions } from "@/core/terrain/vegetation";
 import { LABELS, PLAYER, TILE } from "@/lib/config";
@@ -16,6 +10,7 @@ import {
   getIsometricTilePositions,
   isoPosToWorldPos,
 } from "@/lib/utils/position";
+import { getMaxTileLevel, isPointInIsometricTile } from "@/lib/utils/tiles";
 import { type Chunk } from "@/types/chunks";
 import {
   type AllowedKeys,
@@ -97,9 +92,96 @@ const centerPlayerToCenterTile = (): Coordinates => {
   const { yPosTile, xPosTile } = getIsometricTilePositions(y, x, TILE.WIDTH_HALF, TILE.HEIGHT_HALF);
 
   return {
+    ...state.player.position,
     x: xPosTile - PLAYER.WIDTH / 2,
     y: yPosTile + PLAYER.HEIGHT / 2,
   };
+};
+
+const getPlayerBaseFeetPosition = (
+  player: Sprite,
+  xOffset = 0,
+  yOffset = 0,
+  level = state.player.position.level,
+): Coordinates => {
+  return {
+    ...state.player.position,
+    x: player.x + player.width / 2 + xOffset,
+    // Visual feet y projected back to base map y by undoing elevation offset
+    y: player.y + yOffset + level * TILE.HEIGHT_HALF,
+  };
+};
+
+const isPlayerFeetTouchingTile = (
+  player: Sprite,
+  tile: ContainerChild,
+  xOffset = 0,
+  yOffset = 0,
+  level = state.player.position.level,
+) => {
+  const feet = getPlayerBaseFeetPosition(player, xOffset, yOffset, level);
+  const y = feet.y - PLAYER.FEET_MARGIN;
+  const halfWidth = player.width / 2 - PLAYER.FEET_MARGIN;
+
+  // Check 3 probe points across the player feet (left, center, right)
+  return (
+    isPointInIsometricTile(feet.x - halfWidth, y, tile) ||
+    isPointInIsometricTile(feet.x, y, tile) ||
+    isPointInIsometricTile(feet.x + halfWidth, y, tile)
+  );
+};
+
+const getStackLayerFromPlayer = (player: Sprite): Container | null => {
+  return player.parent?.label === LABELS.APP.STACK ? player.parent : null;
+};
+
+const getPlayerTerrainLevel = (
+  player: Sprite,
+  stackLayer: Container | null,
+  xOffset = 0,
+  yOffset = 0,
+  level = state.player.position.level,
+): number => {
+  const feet = getPlayerBaseFeetPosition(player, xOffset, yOffset, level);
+  const { row, col } = getChunkByGlobalPosition(feet.x, feet.y);
+  const keys = getVisibleChunkKeys(row, col);
+  const chunks = getVisibleChunks(keys);
+
+  const activeChunk = chunks.get(`${col}_${row}`);
+  const staticTiles = activeChunk ? getAllActivePlayerTiles(activeChunk, player, level) : [];
+  let nextLevel = getMaxTileLevel(staticTiles);
+
+  if (stackLayer) {
+    const touchingStackTiles = stackLayer.children.filter(
+      (tile) =>
+        tile.label !== LABELS.APP.PLAYER &&
+        isPlayerFeetTouchingTile(player, tile, xOffset, yOffset, level),
+    );
+    nextLevel = getMaxTileLevel(touchingStackTiles, nextLevel);
+  }
+
+  return nextLevel;
+};
+
+const canPlayerMoveToNextLevel = (
+  player: Sprite,
+  stackLayer: Container | null,
+  xOffset: number,
+  yOffset: number,
+  currentLevel: number,
+): boolean => {
+  const nextLevel = getPlayerTerrainLevel(player, stackLayer, xOffset, yOffset, currentLevel);
+  return nextLevel - currentLevel <= PLAYER.MAX_STEP_LEVEL_DIFF;
+};
+
+const applyPlayerElevation = (player: Sprite, stackLayer: Container | null) => {
+  const previousLevel = state.player.position.level;
+  const baseFeetY = player.y + previousLevel * TILE.HEIGHT_HALF;
+  const nextLevel = getPlayerTerrainLevel(player, stackLayer, 0, 0, previousLevel);
+
+  // Keep base feet stable in map space, project visual y from sampled level
+  player.y = baseFeetY - nextLevel * TILE.HEIGHT_HALF;
+  state.player.position.level = nextLevel;
 };
 
 export const createPlayer = (): Sprite => {
@@ -115,7 +197,7 @@ export const createPlayer = (): Sprite => {
   player.zIndex = x + y;
 
   state.player.animation.key = getPlayerAnimationKey(state.player.movementKeys);
-  state.player.position = { x, y };
+  state.player.position = { x, y, level: 0 };
 
   const { currentFrame, key } = state.player.animation;
 
@@ -172,22 +254,17 @@ const handlePlayerAnimation = (player: Sprite) => {
   }
 };
 
-const getAllActivePlayerTiles = (chunk: Chunk, player: Sprite): ContainerChild[] => {
-  const ground = chunk.ground?.children ?? [];
+const getAllActivePlayerTiles = (
+  chunk: Chunk,
+  player: Sprite,
+  level = state.player.position.level,
+): ContainerChild[] => {
+  const ground = chunk?.children ?? [];
   const tiles: ContainerChild[] = [];
 
   // We only want to check if the bottom of the player is in a tile since that is where the feet are
   for (const tile of ground) {
-    const cx = tile.x + TILE.WIDTH_HALF;
-    const cy = tile.y + TILE.HEIGHT_HALF;
-
-    // The anchor is set to bottom left of the player therefore we dont have to add width or height
-    const dx = Math.abs(player.x - cx) / TILE.WIDTH_HALF;
-    const dy = Math.abs(player.y - cy) / TILE.HEIGHT_HALF;
-
-    const isInIsometricTile = dx + dy <= 1;
-
-    if (isInIsometricTile) {
+    if (isPlayerFeetTouchingTile(player, tile, 0, 0, level)) {
       tiles.push(tile);
     }
   }
@@ -213,31 +290,11 @@ const isPlayerBehindItem = (item: ContainerChild, groundTile: ContainerChild, pl
   return isAboveGroundTile && (isRight || isLeft) && (isTop || isBottom);
 };
 
-export const putPlayerInChunk = (player: Sprite) => {
-  const { row, col } = getChunkByGlobalPosition(player.x, player.y);
-
-  const newChunk = getChunk(row, col);
-  const oldChunk = getChunkByKey(state.player.chunkKey);
-  if (!newChunk || !newChunk.object) return;
-  const newKey = newChunk.object.label;
-
-  if (newKey === oldChunk?.object?.label) return;
-
-  if (oldChunk?.object) {
-    oldChunk.object.removeChild(player);
-  }
-
-  newChunk.object?.addChild(player);
-
-  if (isChunkKey(newKey)) {
-    state.player.chunkKey = newKey;
-  }
-};
-
 // eslint-disable-next-line sonarjs/cognitive-complexity
 const handlePlayerBounds = (player: Sprite): AllowedKeys[] => {
   let allowedDirection = [...allowedKeys];
-  const { row, col } = getChunkByGlobalPosition(player.x, player.y);
+  const feet = getPlayerBaseFeetPosition(player);
+  const { row, col } = getChunkByGlobalPosition(feet.x, feet.y);
   const keys = getVisibleChunkKeys(row, col);
   const chunks = getVisibleChunks(keys);
 
@@ -247,12 +304,12 @@ const handlePlayerBounds = (player: Sprite): AllowedKeys[] => {
   // Including the chunks around the chunk that the player is in,
   // since a object item can have a part of it covering in to a differnt chunk
   for (const [, chunk] of chunks) {
-    if (!chunk.ground) {
+    if (!chunk) {
       continue;
     }
 
     // Moving backwords since the actual first index is the furthest away visualy
-    const ground = chunk.ground.children;
+    const ground = chunk.children;
     for (let i = ground.length - 1; i >= 0; i--) {
       const tile = ground[i];
       const currentVegetation = getVegetationFromGround(chunk, tile.label);
@@ -271,14 +328,6 @@ const handlePlayerBounds = (player: Sprite): AllowedKeys[] => {
       if (currentVegetation && currentTiles.includes(tile)) {
         const collidedSides = getIsoCollisionSides(tile, player);
 
-        if (collidedSides["top-left"]) {
-          allowedDirection = ["w", "a"];
-          break;
-        }
-        if (collidedSides["top-right"]) {
-          allowedDirection = ["w", "d"];
-          break;
-        }
         if (collidedSides["bottom-left"]) {
           allowedDirection = ["s", "a"];
           break;
@@ -317,29 +366,50 @@ export const movePlayerPosition = (player: Sprite, world: Container, deltaTime: 
   // Put player in the correct chunk so zIndex will work on surface items
   const allowedDirection = handlePlayerBounds(player);
   const distance = deltaTime * PLAYER.SPEED;
+  const stackLayer = getStackLayerFromPlayer(player);
+  const currentLevel = getPlayerTerrainLevel(player, stackLayer, 0, 0, state.player.position.level);
+  state.player.position.level = currentLevel;
 
-  if (state.player.movementKeys.has("w") && allowedDirection.includes("w")) {
+  if (
+    state.player.movementKeys.has("w") &&
+    allowedDirection.includes("w") &&
+    canPlayerMoveToNextLevel(player, stackLayer, 0, -distance, currentLevel)
+  ) {
     world.y += distance;
     player.y -= distance;
   }
 
-  if (state.player.movementKeys.has("a") && allowedDirection.includes("a")) {
+  if (
+    state.player.movementKeys.has("a") &&
+    allowedDirection.includes("a") &&
+    canPlayerMoveToNextLevel(player, stackLayer, -distance * 2, 0, currentLevel)
+  ) {
     world.x += distance * 2;
     player.x -= distance * 2;
   }
 
-  if (state.player.movementKeys.has("s") && allowedDirection.includes("s")) {
+  if (
+    state.player.movementKeys.has("s") &&
+    allowedDirection.includes("s") &&
+    canPlayerMoveToNextLevel(player, stackLayer, 0, distance, currentLevel)
+  ) {
     world.y -= distance;
     player.y += distance;
   }
 
-  if (state.player.movementKeys.has("d") && allowedDirection.includes("d")) {
+  if (
+    state.player.movementKeys.has("d") &&
+    allowedDirection.includes("d") &&
+    canPlayerMoveToNextLevel(player, stackLayer, distance * 2, 0, currentLevel)
+  ) {
     world.x -= distance * 2;
     player.x += distance * 2;
   }
 
-  // To always be behind or infront of the right tree we have to adjust the zIndex depending on y axis
-  player.zIndex = Math.abs(player.x + player.y);
+  applyPlayerElevation(player, stackLayer);
+
+  // We render player at elevated y values and add the terrain offset back for depth sorting
+  player.zIndex = player.y + player.height + state.player.position.level * TILE.HEIGHT_HALF;
 
   state.player.animation.timer += deltaTime / 60;
   handlePlayerAnimation(player);

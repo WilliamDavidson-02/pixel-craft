@@ -10,6 +10,7 @@ export type State = {
   assets: ASSETS;
   chunkState: ChunkState;
   player: PlayerState;
+  seed: number;
 };
 
 const initialPlayerState: PlayerState = {
@@ -20,7 +21,7 @@ const initialPlayerState: PlayerState = {
     timer: 0,
     speed: 0.1,
   },
-  position: { x: 0, y: 0 },
+  position: { x: 0, y: 0, level: 0 },
   movementKeys: new Set([]),
   inWater: false,
 };
@@ -35,4 +36,5 @@ export const state: State = {
   assets: {},
   chunkState: initialChunkState,
   player: initialPlayerState,
+  seed: 47208,
 };

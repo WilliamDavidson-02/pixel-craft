@@ -1,33 +1,88 @@
 // @ts-expect-error - This is the way to import noise
 import { Noise } from "noisejs";
 
+import { state } from "@/core/state";
 import { CHUNK } from "@/lib/config";
 import { isoPosToWorldPos } from "@/lib/utils/position";
+import type { NoiseConfig } from "@/types/perlin";
 
-export const SEED = 47208;
+export const setPerlinSeed = (newSeed: number) => {
+  state.seed = newSeed;
+};
 
-export const generatePerlinNoise = (x: number, y: number): number => {
-  const noise = new Noise(SEED);
-  // Domain warping for realistic coastlines
-  const scale = 80;
-  let frequency = 0.005;
-  const warpX = noise.perlin2(x * frequency, y * frequency) * scale;
-  const warpY = noise.perlin2((x + 1000) * frequency, y * frequency) * scale;
+const generateNoise = (x: number, y: number, config: NoiseConfig): number => {
+  const noise = new Noise(state.seed + (config.seedOffset ?? 0));
 
-  // Multi-octave fractal noise
+  let sampleX = x;
+  let sampleY = y;
+
+  // Domain warping for realistic terrain shapes
+  if (config.domainWarp?.enabled) {
+    const { frequency, scale, offset } = config.domainWarp;
+    const offsetX = offset?.x ?? 0;
+    const offsetY = offset?.y ?? 0;
+
+    const warpX = noise.perlin2(x * frequency, y * frequency) * scale;
+    const warpY = noise.perlin2((x + offsetX) * frequency, (y + offsetY) * frequency) * scale;
+
+    sampleX += warpX;
+    sampleY += warpY;
+  }
+
+  // Multi octave fractal noise
   let value = 0;
-  let amplitude = 1;
-  frequency = 0.025;
+  let amplitude = config.amplitude ?? 1;
+  let frequency = config.baseFrequency;
+  const persistence = config.persistence ?? 0.5;
+  const lacunarity = config.lacunarity ?? 2;
 
-  for (let octave = 0; octave < 6; octave++) {
-    const sampleX = (x + warpX) * frequency;
-    const sampleY = (y + warpY) * frequency;
-    value += noise.perlin2(sampleX, sampleY) * amplitude;
-    amplitude *= 0.5;
-    frequency *= 2;
+  for (let octave = 0; octave < config.octaves; octave++) {
+    const currentAmp = config.customWeights ? config.customWeights[octave] : amplitude;
+
+    value += noise.perlin2(sampleX * frequency, sampleY * frequency) * currentAmp;
+
+    if (!config.customWeights) {
+      amplitude *= persistence;
+    }
+    frequency *= lacunarity;
+  }
+
+  if (config.normalize) {
+    return (value + 1) / 2;
   }
 
   return value;
+};
+
+export const generatePerlinNoise = (x: number, y: number): number => {
+  return generateNoise(x, y, {
+    baseFrequency: 0.025,
+    octaves: 6,
+    amplitude: 1,
+    persistence: 0.5,
+    lacunarity: 2,
+    domainWarp: {
+      enabled: true,
+      scale: 80,
+      frequency: 0.005,
+      offset: { x: 1000, y: 0 },
+    },
+  });
+};
+
+/**
+ * Generates secondary noise for block type variation.
+ * Uses a different seed and higher frequency for smaller patch sizes.
+ * Returns a value normalized to 0-1 range.
+ */
+export const generateBlockTypeNoise = (x: number, y: number): number => {
+  return generateNoise(x, y, {
+    seedOffset: 1000,
+    baseFrequency: 0.08,
+    octaves: 2,
+    customWeights: [0.7, 0.3],
+    normalize: true,
+  });
 };
 
 export const getPerlinNoise = (col: number, row: number): number[][] => {
@@ -50,8 +105,7 @@ export const getPerlinNoise = (col: number, row: number): number[][] => {
   return values;
 };
 
-export const getPerlinAroundCell = (xPos: number, yPos: number): number[][] => {
-  const area = 1;
+export const getPerlinAroundCell = (xPos: number, yPos: number, area = 1): number[][] => {
   const values: number[][] = [];
 
   const worldPos = isoPosToWorldPos(xPos, yPos);

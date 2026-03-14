@@ -6,6 +6,7 @@ import {
   hasRenderQueue,
   isChunksMemoryFull,
   renderChunk,
+  setAllChunksRenderQueue,
   setChunksRenderQueue,
   shouldRenderNewChunks,
 } from "@/core/chunks";
@@ -19,6 +20,7 @@ import {
 import { state } from "@/core/state";
 import { LABELS } from "@/lib/config";
 import { renderDebugItems, setDebugItem } from "@/lib/debug";
+import { initDebugGui } from "@/lib/debug/gui";
 import { setRenderDistance } from "@/lib/utils/renderDistance";
 import { handleWindowResize } from "@/lib/utils/window";
 
@@ -28,7 +30,6 @@ const init = async (): Promise<void> => {
   await state.app.init({
     resizeTo: window,
     antialias: false,
-    background: "#4a80ff",
   });
   document.body.appendChild(state.app.canvas);
 
@@ -42,21 +43,22 @@ const init = async (): Promise<void> => {
   });
   state.app.stage.addChild(world);
 
-  const groundLayer = new Container({ label: LABELS.APP.GROUND });
-  world.addChild(groundLayer);
-  setChunksRenderQueue(world, groundLayer);
+  const stackLayer = new Container({ label: LABELS.APP.STACK, sortableChildren: true });
+  const staticLayer = new Container({ label: LABELS.APP.STATIC });
+
+  setChunksRenderQueue(world, staticLayer);
 
   const player = createPlayer();
-  world.addChild(player);
-  window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
-  window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
+
+  stackLayer.addChild(player);
+  world.addChild(staticLayer, stackLayer);
 
   state.app.ticker.add((ticker) => {
     if (isPlayerMoving()) {
       movePlayerPosition(player, world, ticker.deltaTime);
 
       if (shouldRenderNewChunks(player.x, player.y)) {
-        setChunksRenderQueue(world, groundLayer);
+        setChunksRenderQueue(world, staticLayer);
       }
 
       if (isChunksMemoryFull()) {
@@ -65,7 +67,7 @@ const init = async (): Promise<void> => {
     }
 
     if (hasRenderQueue()) {
-      renderChunk(groundLayer);
+      renderChunk(staticLayer, stackLayer);
     }
 
     setDebugItem("fps", Math.floor(ticker.FPS));
@@ -75,8 +77,13 @@ const init = async (): Promise<void> => {
     Culler.shared.cull(world, view);
   });
 
+  initDebugGui(() => setAllChunksRenderQueue(world, staticLayer));
+
+  window.addEventListener("keydown", (ev) => registerPlayerMovement(ev.key));
+  window.addEventListener("keyup", (ev) => removePlayerMovement(ev.key));
+
   window.addEventListener("resize", () => {
-    handleWindowResize(world, groundLayer);
+    handleWindowResize(world, staticLayer);
     view = new Rectangle(0, 0, window.innerWidth, window.innerHeight);
   });
 };

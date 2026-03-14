@@ -1,8 +1,8 @@
 import type { Container } from "pixi.js";
 
-type ChunkKeys = "ground" | "object";
+export type Layer = "static" | "stack";
 
-export type Chunk = Partial<Record<ChunkKeys, Container>>;
+export type Chunk = Container;
 
 export type Chunks = Map<string, Chunk>;
 

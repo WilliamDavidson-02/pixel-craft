@@ -1,6 +1,7 @@
 import type { Texture } from "pixi.js";
 
 import { state } from "@/core/state";
+import { TERRAIN_HEIGHT } from "@/lib/config";
 
 // We check the suroding perlin values to get the correct water tile
 // 1 = ground, 0 = ignore and -1 = water
@@ -233,8 +234,6 @@ const waterPatterns: Record<string, number[][]> = {
   ],
 };
 
-export const PERLIN_GROUND_WATER_THRESHOLD = 0.15;
-
 export const matchesPattern = (perlin: number[][], pattern: number[][]): boolean => {
   for (let y = 0; y < 3; y++) {
     for (let x = 0; x < 3; x++) {
@@ -245,10 +244,10 @@ export const matchesPattern = (perlin: number[][], pattern: number[][]): boolean
         continue;
       }
 
-      if (rule === 1 && value >= PERLIN_GROUND_WATER_THRESHOLD) {
+      if (rule === 1 && value >= TERRAIN_HEIGHT.WATER_THRESHOLD) {
         return false;
       } // must be ground
-      if (rule === -1 && value < PERLIN_GROUND_WATER_THRESHOLD) {
+      if (rule === -1 && value < TERRAIN_HEIGHT.WATER_THRESHOLD) {
         return false;
       } // must be water
     }
@@ -272,5 +271,25 @@ export const getWaterTextureFromPerlin = (perlin: number[][]): { water: Texture;
 };
 
 export const isTileWater = (perlin: number): boolean => {
-  return perlin >= PERLIN_GROUND_WATER_THRESHOLD;
+  return perlin >= TERRAIN_HEIGHT.WATER_THRESHOLD;
+};
+
+/**
+ * Checks if a ground tile is adjacent to water (shore detection).
+ * The center tile must be ground, and at least one neighbor must be water.
+ */
+export const isAdjacentToWater = (perlin: number[][], area = 3): boolean => {
+  // Center must be ground
+  if (perlin[1][1] >= TERRAIN_HEIGHT.WATER_THRESHOLD) {
+    return false;
+  }
+
+  for (let y = 0; y < area; y++) {
+    for (let x = 0; x < area; x++) {
+      const isCenter = x === 1 && y === 1;
+      if (!isCenter && isTileWater(perlin[y][x])) return true;
+    }
+  }
+
+  return false;
 };
