@@ -62,6 +62,7 @@ export const createGroundSprite = (data: GroundSpriteData): { sprite: Sprite; la
     x: x,
     y: y,
     label: `${x}_${y}`,
+    anchor: { x: 0.5, y: 1 },
   });
 
   const { level, isWater } = getTerrainHeightLevel(perlinValue);
